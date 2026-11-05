@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from uuid import uuid4
+
+from langchain_core.messages import HumanMessage
 
 from app.agent.graph import app as agent
-
-#creating a fastapi application
 
 app = FastAPI(
     title="IT Support Copilot API",
@@ -11,25 +12,32 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Define the incoming request structure
 class QuestionRequest(BaseModel):
-    question :str
+    question: str
+    thread_id: str | None = None
 
-#first api endpoint
 
 @app.get("/")
 def home():
-    return {
-        "message":"Welcome to IT Support Copilot API"
-    }
+    return {"message": "Welcome to IT Support Copilot API"}
 
-#POST ENDPOINT to ask questions
+
 @app.post("/ask")
-def ask_question(request:QuestionRequest):
+def ask_question(request: QuestionRequest):
 
+    # Reuse the conversation ID or create a new one
+    thread_id = request.thread_id or str(uuid4())
+
+    # Pass the question and conversation ID to LangGraph
     result = agent.invoke(
         {
-            "question":request.question
+            "question": request.question,
+            "messages": [HumanMessage(content=request.question)]
+        },
+        config={
+            "configurable": {
+                "thread_id": thread_id
+            }
         }
     )
 
@@ -37,8 +45,8 @@ def ask_question(request:QuestionRequest):
         "question": request.question,
         "answer": result["answer"],
         "sources": result.get("sources", []),
-        "status": result.get("status", "unknown")
+        "status": result.get("status", "unknown"),
+        "thread_id": thread_id
     }
-
 
 

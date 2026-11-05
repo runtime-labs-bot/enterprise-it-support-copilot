@@ -8,23 +8,55 @@ from app.agent.question_classifier import classify_question
 from app.services.web_search import search_web 
 from app.agent.web_result_grader import grade_web_results
 from app.services.web_answer_generator import generate_web_answer
+import sqlite3
+from pathlib import Path
+from langgraph.checkpoint.sqlite import SqliteSaver
+from langchain_core.messages import AIMessage
 
 
 
 #Node1 retrieve documents from pinecone
 
+def save_response(state: AgentState) -> dict:
+    return {
+        "messages": [AIMessage(content=state["answer"])]
+    }
+
+def get_contextual_question(state: AgentState) -> str:
+    messages = state.get("messages", [])
+
+    # Exclude the latest message because question already contains it
+    previous_messages = messages[:-1] if messages else []
+
+    # Use the last 4 messages for context
+    recent_messages = previous_messages[-4:]
+
+    if not recent_messages:
+        return state["question"]
+
+    conversation = []
+
+    for message in recent_messages:
+        role = "User" if message.type == "human" else "Assistant"
+        conversation.append(f"{role}: {message.content}")
+
+    context = "\n".join(conversation)
+
+    return (
+        f"Previous conversation:\n{context}\n\n"
+        f"Current question: {state['question']}"
+    )
 
 def retrieve_documents(state: AgentState) -> dict:
-    question = state["question"]
+    contextual_question = get_contextual_question(state)
 
-    # Focused queries for common IT support topics
     additional_queries = [
         "What company policy applies to the issue described?",
         "What troubleshooting steps or approved procedures apply?"
     ]
 
     retrieved_chunks = search_knowledge(
-        question,
+        contextual_question,
         top_k=5,
         additional_queries=additional_queries
     )
@@ -32,14 +64,14 @@ def retrieve_documents(state: AgentState) -> dict:
     print("Total retrieved chunks:", len(retrieved_chunks))
 
     return {
+        "contextual_question": contextual_question,
         "retrieved_chunks": retrieved_chunks
     }
-
 
 #Node2 grade the retrieved documents
 
 def grade_documents(state:AgentState)->dict:
-    question = state["question"]
+    question = state.get("contextual_question", state["question"])
     retrieved_chunks = state["retrieved_chunks"]
     grading_result = grade_retrieval(
         question,
@@ -52,7 +84,7 @@ def grade_documents(state:AgentState)->dict:
 
 def classify_question_node(state:AgentState):
     print("Executing question classification node...")
-    question=state["question"]
+    question = state.get("contextual_question", state["question"])
     classification=classify_question(question)
     print("Question Category:",classification["category"])
     print("Classification reason:", classification["reason"])
@@ -61,21 +93,25 @@ def classify_question_node(state:AgentState):
         "classification":classification
     }
 
-def web_search_node(state:AgentState):
+def web_search_node(state: AgentState):
     print("Executing web search node...")
 
+    # Use current question for web search, not full conversation history
     question = state["question"]
-    web_results = search_web(question,max_results=5)
-    print("Number of web results:",len(web_results))
 
-    return {
-        "web_results":web_results
-    }
+    # Tavily allows a maximum query length of 1500 characters
+    question = question[:1400]
+
+    web_results = search_web(question, max_results=5)
+
+    print("Number of web results:", len(web_results))
+
+    return {"web_results": web_results}
 
 def grade_web_results_node(state: AgentState):
     print("Executing web result grading node...")
 
-    question = state["question"]
+    question = state.get("contextual_question", state["question"])
     web_results = state.get("web_results", [])
 
     grading_result = grade_web_results(
@@ -93,9 +129,9 @@ def grade_web_results_node(state: AgentState):
 def web_generate_node(state: AgentState):
 
     result = generate_web_answer(
-        question=state["question"],
-        web_results=state["web_results"]
-    )
+    question=state.get("contextual_question", state["question"]),
+    web_results=state["web_results"]
+)
 
     return {
         "answer": result["answer"],
@@ -143,9 +179,9 @@ def generate_response(state: AgentState) -> dict:
     print("\nExecuting answer generation node...")
 
     result = generate_answer(
-        state["question"],
-        state["retrieved_chunks"]
-    )
+    state.get("contextual_question", state["question"]),
+    state["retrieved_chunks"]
+)
 
     return {
         "answer": result["answer"],
@@ -239,13 +275,31 @@ workflow.add_conditional_edges(
 
 
 
-workflow.add_edge("generate",END)
-workflow.add_edge("fallback",END)
-workflow.add_edge("web_search", "grade_web")
-workflow.add_edge("web_generate", END)
-workflow.add_edge("out_of_scope", END)
+workflow.add_node("save_response", save_response)
 
-app=workflow.compile()
+workflow.add_edge("generate", "save_response")
+workflow.add_edge("fallback", "save_response")
+workflow.add_edge("web_generate", "save_response")
+workflow.add_edge("out_of_scope", "save_response")
+
+workflow.add_edge("save_response", END)
+workflow.add_edge("web_search", "grade_web")
+
+# Create folder for storing conversation checkpoints
+Path("data/checkpoints").mkdir(parents=True, exist_ok=True)
+
+# Create SQLite database connection
+conn = sqlite3.connect(
+    "data/checkpoints/checkpoints.sqlite",
+    check_same_thread=False
+)
+
+# Initialize LangGraph checkpointer
+checkpointer = SqliteSaver(conn)
+checkpointer.setup()
+
+# Compile graph with persistent memory
+app = workflow.compile(checkpointer=checkpointer)
 
 
 

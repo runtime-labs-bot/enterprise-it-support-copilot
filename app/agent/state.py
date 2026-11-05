@@ -1,8 +1,12 @@
-from typing import TypedDict
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+from langchain_core.messages import AnyMessage
 
 
 class AgentState(TypedDict, total=False):
     question: str
+    messages: Annotated[list[AnyMessage], add_messages]
+
     retrieved_chunks: list[dict]
     grading_result: dict
     answer: str
@@ -11,6 +15,9 @@ class AgentState(TypedDict, total=False):
     classification: dict
     web_results: list[dict]
     web_grading_result: dict
+    contextual_question: str
+
+
 
 
     
