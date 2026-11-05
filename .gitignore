@@ -1,0 +1,37 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+logs/
+*.log
+
+# Generated databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Vector database
+data/chroma_db/
+
+# Evaluation outputs
+evals/results.json
+evals/retrieval_results.json
