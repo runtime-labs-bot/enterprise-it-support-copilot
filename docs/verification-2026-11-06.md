@@ -56,7 +56,7 @@ part of this local integration check.
 ## Repeat the checks
 
 ```bat
-cd /d C:\MeridianITBackend
+cd /d C:\ITSupportCopilot\backend
 .venv\Scripts\python -m unittest discover -s tests -v
 .venv\Scripts\python -m alembic check
 .venv\Scripts\python -m pip check

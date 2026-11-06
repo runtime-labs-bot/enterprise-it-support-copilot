@@ -3,10 +3,10 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app
 COPY requirements.txt /tmp/copilot-requirements.txt
-COPY --from=meridian requirements.txt /tmp/meridian-requirements.txt
+COPY backend/requirements.txt /tmp/meridian-requirements.txt
 RUN python -m pip install -r /tmp/copilot-requirements.txt -r /tmp/meridian-requirements.txt
 COPY app ./app
-COPY --from=meridian app /opt/meridian/app
+COPY backend/app /opt/meridian/app
 RUN useradd --create-home --uid 10001 appuser \
     && mkdir -p /app/data/checkpoints \
     && chown -R appuser:appuser /app/data

@@ -57,8 +57,7 @@ async def connect_meridian(employee_api_key=None):
     from mcp import ClientSession, StdioServerParameters
     from mcp.client.stdio import stdio_client
 
-    backend = Path(os.getenv("MERIDIAN_BACKEND_DIR", "C:/MeridianITBackend")).resolve()
-    executable = Path(os.getenv("MERIDIAN_MCP_PYTHON", str(backend / ".venv/Scripts/python.exe")))
+    backend, executable = meridian_installation()
     if not executable.is_file() or not (backend / "app/mcp_server.py").is_file():
         raise RuntimeError("Meridian MCP installation is unavailable")
     params = StdioServerParameters(
@@ -73,6 +72,19 @@ async def connect_meridian(employee_api_key=None):
         async with ClientSession(read, write, read_timeout_seconds=timedelta(seconds=25)) as session:
             await session.initialize()
             yield session
+
+
+def meridian_installation():
+    """Resolve local and container installations independently of the working directory."""
+    root = Path(__file__).resolve().parents[2]
+    backend = Path(os.getenv("MERIDIAN_BACKEND_DIR") or "backend").expanduser()
+    if not backend.is_absolute():
+        backend = root / backend
+    default_python = backend / ".venv" / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+    executable = Path(os.getenv("MERIDIAN_MCP_PYTHON") or str(default_python)).expanduser()
+    if not executable.is_absolute():
+        executable = root / executable
+    return backend.resolve(), executable.resolve()
 
 
 def _tool_definitions(tools):

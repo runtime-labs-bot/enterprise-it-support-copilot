@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT))
 import httpx
 from dotenv import dotenv_values, load_dotenv
 
-from app.agent.meridian import ALLOWED_TOOLS, connect_meridian, run_tool_loop
+from app.agent.meridian import ALLOWED_TOOLS, connect_meridian, meridian_installation, run_tool_loop
 
 
 def decode(result):
@@ -81,14 +81,14 @@ def main():
     parser.add_argument("--live-model", action="store_true", help="Also invoke the actual Groq-backed LangGraph with a read-only fixture query")
     args = parser.parse_args()
     load_dotenv(ROOT / ".env")
-    backend = Path(os.getenv("MERIDIAN_BACKEND_DIR", "C:/MeridianITBackend"))
+    backend, backend_python = meridian_installation()
     settings = dotenv_values(backend / ".env")
     # A separate temporary API port avoids interfering with the user's running API.
     base_url = "http://127.0.0.1:8766"
     os.environ["MERIDIAN_BACKEND_URL"] = base_url
     os.environ["MERIDIAN_MCP_ENABLED"] = "true"
     process = subprocess.Popen(
-        [str(backend / ".venv/Scripts/python.exe"), "-B", "-m", "uvicorn", "app.main:app", "--port", "8766"],
+        [str(backend_python), "-B", "-m", "uvicorn", "app.main:app", "--port", "8766"],
         cwd=backend, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
     employee_id = device_id = None

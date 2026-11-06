@@ -6,18 +6,16 @@ login account once; employee identity comes from verified authentication.
 
 ## One-time account setup
 
-The employee record must already exist. From CMD:
+An administrator creates or selects the employee in **Admin dashboard → Employees**,
+opens **Set up login account**, chooses the approved company role, and generates
+a private setup link. The employee chooses and confirms a 12-128 character
+password in the browser, with an optional **Show password** control. Links expire
+after 24 hours and work once. See [password setup](password-setup.md).
 
-```bat
-cd /d C:\MeridianITBackend
-.venv\Scripts\python scripts\set_user_password.py --email rd@example.com --role employee
-```
-
-Enter and confirm a 12-128 character password at the hidden prompt. Use the
-intended employee's existing email. Use --role admin to provision an admin login;
-omit --role on a later password reset to preserve the role. Password resets
-revoke existing login sessions. No real employee password is assigned by code or
-migrations, and passwords are never accepted as command-line arguments.
+For the first Docker administrator, use the trusted activation-link command in
+the [Compose instructions](docker-compose.md). Backend terminal password tools
+remain available for administrator recovery. No real employee password is
+assigned by code or migrations, and passwords are never command-line arguments.
 
 Admins may also use POST /auth/users or PUT /auth/users/{employee_id}/password
 on Meridian with admin authentication. There is no public registration endpoint
@@ -26,7 +24,7 @@ that lets a person claim someone else's employee record or an admin role.
 ## Start the applications (separate CMD terminals)
 
 ```bat
-cd /d C:\MeridianITBackend
+cd /d C:\ITSupportCopilot\backend
 .venv\Scripts\activate
 python -m alembic upgrade head
 python -m uvicorn app.main:app --reload --port 8000
@@ -45,7 +43,7 @@ python -m streamlit run ui\streamlit_app.py
 ```
 
 Open http://localhost:8501 and sign in. The stdio MCP subprocess starts on demand.
-An existing installation already has migration 0006_users_and_sessions applied.
+An existing installation already has migration 0007_password_invitations applied.
 Fresh installations must install the backend requirements before migrations.
 
 ## Login and session behavior
@@ -129,7 +127,7 @@ Do not copy that secret into the Copilot or expose it in the UI. For Linux or
 containers, configure paths/networking appropriately; defaults target Windows.
 
 ```bat
-cd /d C:\MeridianITBackend
+cd /d C:\ITSupportCopilot\backend
 .venv\Scripts\python -m unittest discover -s tests -v
 .venv\Scripts\python -m alembic check
 ```
@@ -185,7 +183,7 @@ To provision an admin login for an existing employee record, use the local IT
 administrator command, replacing the email with the intended administrator:
 
 ```bat
-cd /d C:\MeridianITBackend
+cd /d C:\ITSupportCopilot\backend
 .venv\Scripts\python scripts\set_user_password.py --email admin@example.com --role admin
 ```
 

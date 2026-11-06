@@ -1,6 +1,7 @@
 import json
 import os
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -9,6 +10,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 from app.agent.meridian import (
     ALLOWED_TOOLS, MeridianContext, meridian_node, route_after_meridian, run_tool_loop,
+    meridian_installation,
 )
 from app.agent.state import AgentState
 
@@ -18,6 +20,26 @@ def tool_call(name, arguments=None, call_id="call1"):
         "id": call_id, "type": "function",
         "function": {"name": name, "arguments": json.dumps(arguments or {})},
     }]}
+
+
+class MeridianInstallationTests(unittest.TestCase):
+    def test_default_backend_is_inside_repository_from_any_working_directory(self):
+        with patch.dict(os.environ, {"MERIDIAN_BACKEND_DIR": "", "MERIDIAN_MCP_PYTHON": ""}), patch("pathlib.Path.cwd", return_value=Path("unrelated")):
+            backend, python = meridian_installation()
+        self.assertEqual(backend, Path(__file__).resolve().parents[1] / "backend")
+        self.assertTrue((backend / "app/mcp_server.py").is_file())
+        self.assertEqual(python.parent.parent, backend / ".venv")
+
+    def test_absolute_and_relative_overrides(self):
+        root = Path(__file__).resolve().parents[1]
+        with patch.dict(os.environ, {"MERIDIAN_BACKEND_DIR": "backend", "MERIDIAN_MCP_PYTHON": "backend/.venv/Scripts/python.exe"}):
+            backend, python = meridian_installation()
+        self.assertEqual(backend, root / "backend")
+        self.assertEqual(python, root / "backend/.venv/Scripts/python.exe")
+        with patch.dict(os.environ, {"MERIDIAN_BACKEND_DIR": str(root / "backend"), "MERIDIAN_MCP_PYTHON": str(root / "python")}):
+            backend, python = meridian_installation()
+        self.assertEqual(backend, root / "backend")
+        self.assertEqual(python, root / "python")
 
 
 class FakeSession:

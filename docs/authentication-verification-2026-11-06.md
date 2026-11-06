@@ -34,7 +34,7 @@ No real employee password is set or changed by tests/migrations.
 The initial real password must be set once through the local hidden prompt:
 
 ```bat
-cd /d C:\MeridianITBackend
+cd /d C:\ITSupportCopilot\backend
 .venv\Scripts\python scripts\set_user_password.py --email rd@example.com --role employee
 ```
 

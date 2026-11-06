@@ -30,7 +30,7 @@ services:
   migrate:
     image: meridian-it-backend:local
     build:
-      context: ${MERIDIAN_BUILD_CONTEXT:-../MeridianITBackend}
+      context: ./backend
     environment: *meridian-environment
     command: ["python", "-m", "alembic", "upgrade", "head"]
     depends_on:
@@ -41,7 +41,7 @@ services:
   meridian:
     image: meridian-it-backend:local
     build:
-      context: ${MERIDIAN_BUILD_CONTEXT:-../MeridianITBackend}
+      context: ./backend
     environment: *meridian-environment
     ports:
       - "127.0.0.1:${MERIDIAN_PORT:-8000}:8000"
@@ -60,8 +60,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      additional_contexts:
-        meridian: ${MERIDIAN_BUILD_CONTEXT:-../MeridianITBackend}
     environment:
       GROQ_API_KEY: ${GROQ_API_KEY:?Set GROQ_API_KEY in .env.docker}
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}

@@ -3,10 +3,24 @@
 LangGraph IT support assistant with knowledge retrieval, web fallback, persistent
 conversation memory, and live Meridian employee/device/ticket operations over MCP.
 
-The independent [Meridian backend](https://github.com/rushberry02/meridian-it-backend)
-owns PostgreSQL data and ticket workflow rules. This repository hosts the Copilot
-API and Streamlit chat. Meridian runs on port 8000, the Copilot API on 8001, and
-Streamlit on 8501. The stdio MCP process starts automatically on demand.
+This repository contains the complete application. The Meridian backend in
+`backend/` owns PostgreSQL data and ticket workflow rules. The AI agent and
+Copilot API remain in `app/`, and Streamlit lives in `ui/`. Meridian runs on
+port 8000, the Copilot API on 8001, and Streamlit on 8501 by default. The stdio
+MCP process starts automatically on demand.
+
+```text
+app/           AI agent, Copilot API, and chat services
+ui/            Employee chat and admin dashboard
+backend/       Meridian API, MCP bridge, models, migrations, tests
+scripts/       Setup and complete application verification
+docker-compose.yml
+```
+
+Both Python services retain their own `app` package and virtual environment.
+Start Meridian with `backend/` as its working directory; start Copilot from the
+repository root. They communicate through REST/MCP rather than Python imports.
+An additional `ai-agent/` directory is unnecessary for the existing structure.
 
 ## Local Windows setup
 
@@ -21,7 +35,10 @@ copy .env.example .env
 ```
 
 Populate the provider credentials in `.env`; never commit the file. Configure
-Meridian separately using its README and run its migrations. Then start the
+Meridian using [backend/README.md](backend/README.md) and run its migrations. The
+backend environment belongs in `backend/.env`; Copilot settings belong in the
+root `.env`. `MERIDIAN_BACKEND_DIR=backend` resolves from this repository root.
+Then start the
 Copilot API and UI in separate terminals:
 
 ```bat
@@ -44,7 +61,7 @@ and run-scoped context, not chat text or checkpoint state.
 ## Verification
 
 ```bat
-python -m unittest discover -s tests -v
+python scripts\test_all.py
 python -m pip check
 python scripts\verify_meridian.py --live-model
 ```

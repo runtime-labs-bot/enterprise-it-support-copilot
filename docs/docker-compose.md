@@ -1,13 +1,15 @@
 # Run the complete stack with Docker Compose
 
-Install and start [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/) with Linux containers. Compose 2.17 or newer and BuildKit are required for the additional backend build context. Keep the two repositories next to each other:
+Install and start [Docker Desktop for Windows](https://docs.docker.com/desktop/setup/install/windows-install/) with Linux containers. The entire build now uses this repository:
 
 ```text
 C:\ITSupportCopilot
-C:\MeridianITBackend
+C:\ITSupportCopilot\backend\Dockerfile
 ```
 
-The Compose file belongs to the Copilot repository. Meridian's Dockerfile and migrations remain in its own repository. To use a different location, set `MERIDIAN_BUILD_CONTEXT` to a forward-slash path in `.env.docker`.
+The root Compose file builds Meridian from `./backend`; the Copilot image copies its MCP bridge from `backend/app`. No sibling repository, additional build context, or `MERIDIAN_BUILD_CONTEXT` override is needed. The local services retain separate Python import roots.
+
+For an existing Docker installation, the Compose project name, service names, and named volumes are unchanged. Running `up --build` updates code while preserving PostgreSQL and checkpoint data. Keep your existing ignored `.env.docker`, including port overrides and credentials; do not remove volumes or regenerate database credentials.
 
 ## First start (CMD)
 
@@ -72,5 +74,13 @@ docker compose --env-file .env.docker up -d --wait
 ```
 
 After logging in as an employee, create a ticket through chat, sign out and back in, and verify the conversation is restored. Close your own ticket through chat; use the admin dashboard for support status changes. After `down` and `up`, confirm both the ticket and saved conversation remain. Rebuild with `up --build -d --wait` after source changes; `restart` alone does not rebuild images or update environment configuration. Always use `--env-file .env.docker`. Avoid displaying full resolved Compose configuration because it includes credentials; use `config --quiet` for validation.
+
+Run the automated container check from the repository root:
+
+```bat
+.venv\Scripts\python scripts\verify_compose.py --live-model
+```
+
+This uses temporary employee, admin, device, and ticket records, verifies real container MCP operations and permissions, queries the live model, checks chat restoration after login, and removes the temporary business records. Omit `--live-model` to check the containers without consuming provider tokens. The test reads credentials from ignored `.env.docker` and does not display them.
 
 This setup creates an isolated development database. Migrating the existing Windows database and checkpoints requires a separate backup/restore step; it has not been performed automatically.
