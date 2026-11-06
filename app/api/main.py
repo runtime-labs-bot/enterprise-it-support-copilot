@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+import hashlib
+from fastapi import FastAPI, Header
+from app.agent.meridian import MeridianContext
 from pydantic import BaseModel
 from uuid import uuid4
 
@@ -23,10 +25,11 @@ def home():
 
 
 @app.post("/ask")
-def ask_question(request: QuestionRequest):
+def ask_question(request: QuestionRequest, employee_key: str | None = Header(default=None, alias="X-Meridian-Employee-Key")):
 
     # Reuse the conversation ID or create a new one
     thread_id = request.thread_id or str(uuid4())
+    identity_scope = hashlib.sha256((employee_key or "anonymous").encode()).hexdigest()
 
     # Pass the question and conversation ID to LangGraph
     result = agent.invoke(
@@ -36,9 +39,10 @@ def ask_question(request: QuestionRequest):
         },
         config={
             "configurable": {
-                "thread_id": thread_id
+                "thread_id": f"{identity_scope}:{thread_id}"
             }
-        }
+        },
+        context=MeridianContext(employee_api_key=employee_key),
     )
 
     return {

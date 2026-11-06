@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph, START, END
 
 from app.agent.state import AgentState
-from app.retrieval.search_knowledge import search_knowledge
+from app.agent.meridian import MeridianContext, meridian_node, route_after_meridian
 from app.agent.retrieval_grader import grade_retrieval
 from app.services.answer_generator import generate_answer
 from app.agent.question_classifier import classify_question
@@ -48,6 +48,8 @@ def get_contextual_question(state: AgentState) -> str:
     )
 
 def retrieve_documents(state: AgentState) -> dict:
+    from app.retrieval.search_knowledge import search_knowledge
+
     contextual_question = get_contextual_question(state)
 
     additional_queries = [
@@ -228,8 +230,9 @@ def handle_out_of_scope(state: AgentState) -> dict:
 
 #now build the graph
 
-workflow = StateGraph(AgentState)
+workflow = StateGraph(AgentState, context_schema=MeridianContext)
 
+workflow.add_node("meridian", meridian_node)
 workflow.add_node("retrieve",retrieve_documents)
 workflow.add_node("grade",grade_documents)
 workflow.add_node("classify", classify_question_node)
@@ -241,7 +244,11 @@ workflow.add_node("fallback",handle_insufficient_context)
 workflow.add_node("out_of_scope", handle_out_of_scope)
 
 #workflow sequence
-workflow.add_edge(START, "retrieve")
+workflow.add_edge(START, "meridian")
+workflow.add_conditional_edges(
+    "meridian", route_after_meridian,
+    {"save_response": "save_response", "retrieve": "retrieve"},
+)
 workflow.add_edge("retrieve", "grade")
 
 ## Conditional routing after grading

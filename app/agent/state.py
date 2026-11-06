@@ -16,8 +16,5 @@ class AgentState(TypedDict, total=False):
     web_results: list[dict]
     web_grading_result: dict
     contextual_question: str
-
-
-
-
-    
+    meridian_handled: bool
+    meridian_tools: list[str]

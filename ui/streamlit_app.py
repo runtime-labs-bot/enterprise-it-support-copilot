@@ -2,8 +2,12 @@
 import streamlit as st
 import requests
 import os
+from dotenv import load_dotenv
+from uuid import uuid4
+
+load_dotenv()
 # FastAPI backend URL
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000/ask")
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8001/ask")
 
 # Page configuration
 st.set_page_config(
@@ -11,6 +15,12 @@ st.set_page_config(
     page_icon="🤖",
     layout="centered"
 )
+
+employee_key = st.sidebar.text_input("Employee access key", type="password", help="Get your employee-specific key from your IT administrator. Required to create or close your own tickets.")
+if st.session_state.get("active_employee_key") != employee_key:
+    st.session_state.active_employee_key = employee_key
+    st.session_state.thread_id = str(uuid4())
+    st.session_state.messages = []
 
 # Application title
 # Custom styling
@@ -46,6 +56,8 @@ st.markdown(
 # Store chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = str(uuid4())
 
 # Display previous messages
 for message in st.session_state.messages:
@@ -92,7 +104,8 @@ if question:
             try:
                 response = requests.post(
                     API_URL,
-                    json={"question": question},
+                    json={"question": question, "thread_id": st.session_state.thread_id},
+                    headers={"X-Meridian-Employee-Key": employee_key} if employee_key else {},
                     timeout=120
                 )
 
