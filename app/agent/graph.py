@@ -19,7 +19,9 @@ from langchain_core.messages import AIMessage
 
 def save_response(state: AgentState) -> dict:
     return {
-        "messages": [AIMessage(content=state["answer"])]
+        "messages": [AIMessage(content=state["answer"], additional_kwargs={
+            "sources": state.get("sources", []), "status": state.get("status", "unknown"),
+        })]
     }
 
 def get_contextual_question(state: AgentState) -> str:
@@ -293,11 +295,12 @@ workflow.add_edge("save_response", END)
 workflow.add_edge("web_search", "grade_web")
 
 # Create folder for storing conversation checkpoints
-Path("data/checkpoints").mkdir(parents=True, exist_ok=True)
+CHECKPOINT_DB_PATH = Path(__file__).resolve().parents[2] / "data/checkpoints/checkpoints.sqlite"
+CHECKPOINT_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # Create SQLite database connection
 conn = sqlite3.connect(
-    "data/checkpoints/checkpoints.sqlite",
+    str(CHECKPOINT_DB_PATH),
     check_same_thread=False
 )
 

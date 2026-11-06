@@ -4,5 +4,15 @@ __pycache__/
 *.pyc
 .git/
 .env
+.env.*
+.local-secrets/
+data/
+tests/
+docs/
+evals/
+logs/
+*.log
+*.sqlite*
+.pytest_cache/
 .streamlit/secrets.toml
 evals/results.json

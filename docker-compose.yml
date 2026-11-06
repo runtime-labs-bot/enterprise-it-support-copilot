@@ -1,26 +1,112 @@
+name: meridian-it
+
+x-meridian-environment: &meridian-environment
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_NAME: meridian_it
+  DB_USER: meridian_app
+  DB_PASSWORD: ${DOCKER_DB_PASSWORD:?Run scripts/init_docker_env.py first}
+  AUTH_JWT_SECRET: ${DOCKER_AUTH_JWT_SECRET:?Run scripts/init_docker_env.py first}
+  ADMIN_API_KEY: ${DOCKER_ADMIN_API_KEY:?Run scripts/init_docker_env.py first}
+  SUPPORT_API_KEY: ${DOCKER_SUPPORT_API_KEY:?Run scripts/init_docker_env.py first}
+  BACKEND_URL: http://meridian:8000
+
 services:
-  backend:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: meridian_it
+      POSTGRES_USER: meridian_app
+      POSTGRES_PASSWORD: ${DOCKER_DB_PASSWORD:?Run scripts/init_docker_env.py first}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meridian_app -d meridian_it"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    image: meridian-it-backend:local
+    build:
+      context: ${MERIDIAN_BUILD_CONTEXT:-../MeridianITBackend}
+    environment: *meridian-environment
+    command: ["python", "-m", "alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  meridian:
+    image: meridian-it-backend:local
+    build:
+      context: ${MERIDIAN_BUILD_CONTEXT:-../MeridianITBackend}
+    environment: *meridian-environment
+    ports:
+      - "127.0.0.1:${MERIDIAN_PORT:-8000}:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/database', timeout=4)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+
+  copilot:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: it-support-backend
+      additional_contexts:
+        meridian: ${MERIDIAN_BUILD_CONTEXT:-../MeridianITBackend}
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY:?Set GROQ_API_KEY in .env.docker}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
+      PINECONE_API_KEY: ${PINECONE_API_KEY:?Set PINECONE_API_KEY in .env.docker}
+      PINECONE_INDEX_NAME: ${PINECONE_INDEX_NAME:-it-support-knowledge}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:?Set TAVILY_API_KEY in .env.docker}
+      MERIDIAN_MCP_ENABLED: "true"
+      MERIDIAN_BACKEND_DIR: /opt/meridian
+      MERIDIAN_MCP_PYTHON: /usr/local/bin/python
+      MERIDIAN_BACKEND_URL: http://meridian:8000
     ports:
-      - "8000:8000"
-    env_file:
-      - .env
+      - "127.0.0.1:${COPILOT_PORT:-8001}:8001"
     volumes:
-      - ./data/checkpoints:/app/data/checkpoints
+      - copilot_checkpoints:/app/data/checkpoints
+    depends_on:
+      meridian:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/', timeout=4)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     restart: unless-stopped
 
-  frontend:
+  streamlit:
     build:
       context: .
       dockerfile: Dockerfile.streamlit
-    container_name: it-support-frontend
-    ports:
-      - "8501:8501"
     environment:
-      API_URL: http://backend:8000/ask
+      API_URL: http://copilot:8001/ask
+      COPILOT_PUBLIC_URL: ${COPILOT_PUBLIC_URL:-http://localhost:8501}
+    ports:
+      - "127.0.0.1:${STREAMLIT_PORT:-8501}:8501"
     depends_on:
-      - backend
+      copilot:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=4)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     restart: unless-stopped
+
+volumes:
+  postgres_data:
+  copilot_checkpoints:

@@ -10,6 +10,8 @@ Streamlit on 8501. The stdio MCP process starts automatically on demand.
 
 ## Local Windows setup
 
+For the complete container stack, see [Docker Compose setup](docs/docker-compose.md): PostgreSQL, migrations, Meridian, Copilot API, Streamlit, and persistent chat storage.
+
 ```bat
 cd /d C:\ITSupportCopilot
 python -m venv .venv
@@ -31,9 +33,9 @@ python -m streamlit run ui\streamlit_app.py
 ```
 
 See [integration and employee access instructions](docs/meridian-integration.md)
-for all three application commands, credential issuance, and the MCP tool list.
+for all three application commands, one-time password setup, and the MCP tool list.
 
-Employees authenticate using the chat sidebar's access-key field. They can
+Employees authenticate using the chat email/password login form. They can
 create their own tickets and close their own open/in-progress/resolved tickets
 when the problem is fixed. Other status changes remain admin-only. The backend
 enforces ownership and records status history. Credentials travel in HTTP headers
@@ -52,6 +54,20 @@ and generated database fixtures that are removed afterward. It includes Copilot
 HTTP `/ask`, LangGraph, stdio MCP, REST, PostgreSQL, and employee closure history.
 Unit tests also cover Streamlit credential forwarding and identity-scoped threads.
 
-This is a local development system. Full user login and authorization for the
-older Meridian employee/device/read APIs remain unfinished. Environment files,
+This is a local development system with linked users, JWT/refresh sessions, and
+backend employee/admin access control. Production deployment hardening remains. Environment files,
 credentials, virtual environments, and SQLite checkpoint data must stay out of Git.
+
+Give employees a browser [password setup link](docs/password-setup.md) from the admin dashboard, then sign in normally. Access tokens refresh
+automatically; logout and password reset revoke login sessions. No API-key copying
+is required. Browser refresh/reopening may require a new login; persistent
+remember-me cookies are not implemented.
+
+Previous chats are restored after sign-in and can be reopened from the sidebar.
+New chat starts a separate conversation. The login page has a Show password
+option. Employees choose their passwords in the browser; terminal password tools remain available for trusted administrator recovery.
+
+Conversation management includes search, rename, and archive/restore. Admin
+accounts also have a dashboard for operational totals, ticket updates/history,
+employee records, and device assignments. See the integration guide for admin
+account setup and permissions. Dashboard actions use protected REST endpoints.
