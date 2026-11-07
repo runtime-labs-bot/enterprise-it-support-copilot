@@ -142,7 +142,7 @@ def web_generate_node(state: AgentState):
     return {
         "answer": result["answer"],
         "sources": result["sources"],
-        "status": "answered_web"
+        "status": "answered_web" if result.get('grounded', True) else "insufficient_context"
     }
 
 def route_after_web_grading(state:AgentState):
@@ -192,7 +192,7 @@ def generate_response(state: AgentState) -> dict:
     return {
         "answer": result["answer"],
         "sources": result["sources"],
-        "status": "answered"
+        "status": "answered" if result.get('grounded', True) else "insufficient_context"
     }
 
 #Node4 Handle insufficient internal knowledge

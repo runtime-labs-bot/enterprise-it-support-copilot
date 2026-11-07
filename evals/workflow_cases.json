@@ -222,5 +222,117 @@
     "critical": true,
     "test": "test_ticket_review.TicketReviewTests.test_stale_employee_instance_cannot_bypass_new_review",
     "description": "A stale employee ORM instance cannot bypass a new admin review"
+  },
+  {
+    "id": "wf-029",
+    "profile": "backend",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_idempotency.TicketIdempotencyApiTests.test_replay_after_new_login_creates_one_ticket_and_one_history_event",
+    "description": "Durable replay across logins creates one ticket and event"
+  },
+  {
+    "id": "wf-030",
+    "profile": "backend",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_idempotency.TicketIdempotencyApiTests.test_same_key_changed_details_conflicts_but_new_key_allows_new_ticket",
+    "description": "Changed payload conflicts; distinct intents use distinct keys"
+  },
+  {
+    "id": "wf-031",
+    "profile": "backend",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_idempotency.TicketIdempotencyApiTests.test_key_is_scoped_to_authenticated_user_and_cannot_spoof_reporter",
+    "description": "Replay keys cannot cross authenticated user boundaries"
+  },
+  {
+    "id": "wf-032",
+    "profile": "backend",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_idempotency.TicketIdempotencyApiTests.test_failed_transaction_does_not_reserve_key_or_leave_ticket",
+    "description": "Failed transaction rolls back reservation and ticket together"
+  },
+  {
+    "id": "wf-033",
+    "profile": "backend",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_idempotency.TicketIdempotencyApiTests.test_deleted_ticket_tombstone_blocks_recreation",
+    "description": "Deleted-ticket replay cannot silently recreate a ticket"
+  },
+  {
+    "id": "wf-034",
+    "profile": "backend",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_idempotency.TicketIdempotencyApiTests.test_reassignment_does_not_leak_ticket_on_replay",
+    "description": "Reassigned ticket details are hidden from its former owner"
+  },
+  {
+    "id": "wf-035",
+    "profile": "backend",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_idempotency.TicketIdempotencyApiTests.test_invalid_keys_are_rejected_before_creation",
+    "description": "Invalid request keys are rejected before writing"
+  },
+  {
+    "id": "wf-036",
+    "profile": "backend",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_idempotency.TicketIdempotencyConcurrencyTests.test_independent_sessions_race_and_post_commit_retry_return_one_ticket",
+    "description": "Independent concurrent clients and post-commit retries return one ticket"
+  },
+  {
+    "id": "wf-037",
+    "profile": "offline",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_request_ids.RequestIdTests.test_retry_reuses_trusted_key_but_new_request_uses_new_key",
+    "description": "Trusted request ID survives retry and rejects model-forged keys"
+  },
+  {
+    "id": "wf-038",
+    "profile": "offline",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_request_ids.RequestIdTests.test_model_schema_hides_reserved_key_without_mutating_mcp_schema",
+    "description": "Model cannot choose the reserved idempotency key"
+  },
+  {
+    "id": "wf-039",
+    "profile": "offline",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_request_ids.RequestBoundaryTests.test_api_retries_have_same_message_id_and_separate_threads_have_different_ids",
+    "description": "API preserves retry identity and separates threads"
+  },
+  {
+    "id": "wf-040",
+    "profile": "offline",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_request_ids.RequestBoundaryTests.test_confirmed_admin_ticket_uses_persisted_action_id_as_backend_key",
+    "description": "Confirmed admin creation uses its persisted action ID"
+  },
+  {
+    "id": "wf-041",
+    "profile": "backend",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_ticket_idempotency.TicketIdempotencyMcpTests.test_key_survives_mcp_identity_check_and_http_header",
+    "description": "MCP forwards the trusted key as an authenticated HTTP header"
+  },
+  {
+    "id": "wf-042",
+    "profile": "offline",
+    "group": "policy_citations",
+    "critical": true,
+    "test": "test_answer_citations.GeneratedCitationTests.test_missing_fabricated_or_truncated_citations_fail_closed_without_retry",
+    "description": "Missing, fabricated and truncated generated citations fail closed without extra provider calls"
   }
 ]

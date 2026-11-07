@@ -60,6 +60,10 @@ an employee and optionally reference a device, including shared devices.
 Foreign keys block deletion of employees/devices referenced by tickets and
 employees with assigned devices. Deactivate employees to preserve their records.
 
+Ticket creation accepts an optional `Idempotency-Key` for safe retries across
+requests. See [ticket idempotency](../docs/ticket-idempotency.md) for conflict,
+ownership, deletion and migration behavior.
+
 ## Ticket permissions and workflow
 
 New tickets start open. Normal administrator transitions are:

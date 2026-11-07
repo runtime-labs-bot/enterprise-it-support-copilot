@@ -7,6 +7,7 @@ from app.models.ticket_history import TicketStatusHistory
 
 from app.models.user import User, RefreshSession, RefreshToken
 
-__all__ = ["Employee", "Device", "Ticket", "TicketStatusHistory", "User", "RefreshSession", "RefreshToken"]
+__all__ = ["Employee", "Device", "Ticket", "TicketStatusHistory", "User", "RefreshSession", "RefreshToken", "TicketCreateRequest"]
 
 from app.models.user import PasswordInvitation
+from app.models.ticket_request import TicketCreateRequest

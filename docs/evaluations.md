@@ -4,7 +4,7 @@ The scorecard covers policy/source linkage, clarification, ticket creation,
 ownership, employee closure/admin permissions, and model/MCP/database failures.
 It also checks current admin confirmation, browser revocation, and ticket review
 protections. `evals/test_cases.json` retains the 98 knowledge questions;
-`evals/workflow_cases.json` names 28 focused runtime/backend scenarios.
+`evals/workflow_cases.json` names 42 focused runtime/backend scenarios.
 
 ## Run from CMD
 
@@ -14,9 +14,11 @@ cd /d C:\ITSupportCopilot
 python -m app.evaluation.scorecard --profile checks --output evals/reports/checks
 ```
 
-This runs 15 provider-mocked runtime checks and 13 real PostgreSQL/API permission
+This runs 20 provider-mocked runtime checks and 22 real PostgreSQL/API permission
 checks. Backend tests use `backend/.venv` and `backend/.env`, with generated
-records inside rollback-isolated transactions. Existing user passwords are not
+records inside rollback-isolated transactions. The independent-session race test
+commits its own generated employee/ticket fixture so both clients can see it,
+then removes those fixture records in a `finally` block. Existing user passwords are not
 changed. PostgreSQL identity sequences can advance even though records roll back.
 `--profile offline` runs only the runtime checks and needs no live providers or
 database; outbound provider connections are blocked in its worker. Loopback is
@@ -77,8 +79,9 @@ sentence is entailed by a source**. Human review or a separately calibrated judg
 is still needed for semantic quality. Scripted runtime tests prove tool-loop
 behavior under specified model outputs; they do not prove that a live model will
 always choose the right tool. PostgreSQL checks prove backend enforcement.
-Creation deduplication is checked within a single tool loop; cross-request HTTP
-idempotency is not certified by that case.
+Creation deduplication within one tool loop and durable cross-request ticket
+idempotency have separate cases. PostgreSQL race tests verify one ticket and one
+creation event for concurrent requests with the same authenticated actor/key.
 
 The default gate requires 100% of selected cases to pass. `--fail-under 0.95`
 can relax ordinary quality failures, but critical failures, errors, and skipped
@@ -161,3 +164,58 @@ unchanged expectation hashes. `tc-022` passed every citation check. All **97 loc
 regression tests** also passed. Archived and original report checksums were
 verified unchanged. The detailed comparison is saved separately at
 `evals/reports/citation-parser-baseline-comparison.md` and `.json`.
+
+## Expanded live evaluation and CI
+
+Resume the unfinished catalog without rerunning already completed pass/fail cases:
+
+```bat
+python scripts\run_knowledge_batches.py --exclude-report evals/reports/citation-parser-five.json --output-dir evals/reports/expanded-initial --batch-size 10 --delay 10
+```
+
+Every batch gets a new filename. Provider limits stop further calls. Resume with
+the same command after the provider allows requests again; errors and skips are
+retried, while existing failed answers remain failed for review. Changed case
+expectations are rejected. `coverage.json`/`.md` includes all 98 cases in its
+denominator, selects the latest attempt per case, and retains each source report
+and its provenance. This is a coverage view, not a new single-version live run.
+
+Two batches reached provider limits. Including the earlier smoke run, **17/98
+cases have completed answers: 14 passed and 3 failed**. The latest outcomes also
+include one rate-limit error and 80 skips (77 never requested). **81 cases remain
+unfinished**, so the full-catalog gate fails. Original batch reports are retained.
+
+| Case | Observed failure | Follow-up |
+| --- | --- | --- |
+| `tc-008` | Internal answer had no recognized inline labels despite retrieving the expected software policy | Citation guard added; live recheck pending provider availability |
+| `tc-013` | Web route/category were correct, but no recognized inline citation labels | Same guard applied to web generation; live recheck pending |
+| `tc-014` | Answered from internal VPN context instead of the expected web route | Requires review of document relevance and route expectation; no expectation relaxed |
+
+The original answers were not retained, so the exact label spelling or generation
+finish reason in those failures cannot be recovered. The new runtime safeguard
+rejects empty, truncated, missing-label, and out-of-range-label responses, returns
+a clarification request without source cards, and marks the result
+`insufficient_context`. It adds no model retry and does not manufacture citations.
+Offline tests verify the safeguard; the preserved live failures have not been
+rescored as passes. Source linkage still does not prove semantic entailment.
+
+`.github/workflows/evaluations.yml` runs offline scorecard/regression tests on
+pushes and pull requests without provider secrets. Live evaluation is available
+only through **Actions > Copilot evaluations > Run workflow**, with `live=true`
+and a limit of 1–98. Configure repository secrets `GROQ_API_KEY`,
+`PINECONE_API_KEY`, `TAVILY_API_KEY`, and repository variable
+`PINECONE_INDEX_NAME`; `GROQ_MODEL` is an optional variable. Reports are uploaded
+as workflow artifacts even when the score gate fails. The workflow must be
+committed/pushed before GitHub can execute it; local checks do not certify a
+hosted Actions run.
+
+Implementation verification passed **106 Copilot unit tests**, **96 backend
+tests**, and the expanded **42/42 runtime/backend scorecard**. The new runtime
+guard was verified with mocked model responses; provider limits prevented its
+live recheck. The changed code and workflow are local until committed and pushed;
+the Docker app also requires a rebuild to pick up runtime changes.
+
+See the [offline failure review](evaluation-failure-review.md) for the evidence
+behind all three failures and the quota/reset limitation. Live evaluation is
+currently stopped; no automatic resume is scheduled. Resume explicitly in batches
+of 5–10 after confirming provider availability.

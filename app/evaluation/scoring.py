@@ -1,6 +1,7 @@
 """Pure scoring functions: no providers, credentials, or application state."""
 import re
 from pathlib import PurePosixPath
+from app.services.citations import citation_numbers
 
 DOCUMENT_ID_MAP = {
     "password_reset_and_unlock": "KB-IAM-0011",
@@ -16,19 +17,6 @@ def document_id(value):
         return None
     name = PurePosixPath(value.replace("\\", "/")).stem
     return DOCUMENT_ID_MAP.get(name, name)
-
-
-def citation_numbers(answer):
-    references = set()
-    # Accept the model's two label styles, requiring matching bracket pairs.
-    for ascii_block, unicode_block in re.findall(r"\[([^\[\]【】]+)\]|【([^\[\]【】]+)】", answer):
-        block = ascii_block or unicode_block
-        if not re.match(r"Sources?\s+\d", block, re.I):
-            continue
-        numbers = re.sub(r"\bSources?\s*", "", block, flags=re.I)
-        if re.fullmatch(r"\d+(?:(?:\s*[,;&]\s*|\s+and\s+)\d+)*\s*", numbers, re.I):
-            references.update(int(number) for number in re.findall(r"\d+", numbers))
-    return references
 
 
 def score_knowledge(case, state):

@@ -1,8 +1,11 @@
 from datetime import datetime, timezone
+import hashlib
+import json
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from app.models import Device, Employee, Ticket, TicketStatusHistory
+from app.models import Device, Employee, Ticket, TicketStatusHistory, TicketCreateRequest
 from app.schemas.ticket import TicketCreate, TicketUpdate
 from app.security import Operator
 
@@ -52,10 +55,28 @@ def _save(db: Session, ticket: Ticket):
     return ticket
 
 
-def create_ticket(db: Session, data: TicketCreate, operator: Operator):
+def create_ticket(db: Session, data: TicketCreate, operator: Operator, idempotency_key: str | None = None):
     values = data.model_dump()
     if operator.role == "employee" and values["employee_id"] != operator.employee_id:
         raise EmployeeActionDeniedError("You can create tickets only for yourself")
+    reservation = None
+    if idempotency_key is not None:
+        scope = f'{operator.role}:user:{operator.user_id}' if operator.user_id else f'{operator.role}:employee:{operator.employee_id}'
+        key_hash = hashlib.sha256(idempotency_key.encode()).hexdigest()
+        payload_hash = hashlib.sha256(json.dumps(values, sort_keys=True).encode()).hexdigest()
+        # Unique insertion blocks competing requests until the winning transaction
+        # commits or rolls back. A crash cannot leave a committed empty reservation.
+        inserted = db.scalar(insert(TicketCreateRequest).values(actor_scope=scope, key_hash=key_hash, payload_hash=payload_hash).on_conflict_do_nothing().returning(TicketCreateRequest.key_hash))
+        reservation = db.get(TicketCreateRequest, (scope, key_hash))
+        if inserted is None:
+            if reservation.payload_hash != payload_hash:
+                raise WorkflowConflictError('Idempotency key was already used for different ticket details')
+            existing = db.get(Ticket, reservation.ticket_id) if reservation.ticket_id else None
+            if existing is None:
+                raise WorkflowConflictError('The original ticket was deleted; use a new key for a new ticket')
+            if operator.role == 'employee' and existing.employee_id != operator.employee_id:
+                raise EmployeeActionDeniedError('The original ticket is no longer assigned to you')
+            return existing
     _check_links(db, values)
     ticket = Ticket(**values)
     _record_review(ticket, operator)
@@ -65,6 +86,8 @@ def create_ticket(db: Session, data: TicketCreate, operator: Operator):
     except IntegrityError as exc:
         _integrity_error(db, exc)
     db.add(TicketStatusHistory(ticket_id=ticket.id, old_status=None, new_status="open", actor_role=operator.role, actor_employee_id=operator.employee_id, reason="Ticket created"))
+    if reservation is not None:
+        reservation.ticket_id = ticket.id
     return _save(db, ticket)
 
 

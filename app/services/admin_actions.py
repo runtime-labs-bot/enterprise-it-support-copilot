@@ -131,7 +131,8 @@ class AdminActionStore:
             else:
                 private_token = None
                 path = f"/{action.endpoint()}" + (f"/{action.record_id}" if action.record_id else "") + ("/admin" if action.override else "")
-                record = backend_request(path, method="POST" if action.operation.startswith("create_") else "PATCH", body=action.changes, authorization=authorization, allowed_error_detail=True)
+                request_options = {"idempotency_key": action_id} if action.operation == 'create_ticket' else {}
+                record = backend_request(path, method="POST" if action.operation.startswith("create_") else "PATCH", body=action.changes, authorization=authorization, allowed_error_detail=True, **request_options)
                 result = {"operation": action.operation, "record": record}
         except HTTPException as error:
             status = "uncertain" if error.status_code >= 500 else "failed"

@@ -1,0 +1,67 @@
+name: Copilot evaluations
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      live:
+        description: Run live knowledge cases (uses provider tokens)
+        type: boolean
+        default: false
+      limit:
+        description: Maximum knowledge cases (1-98)
+        type: number
+        default: 5
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    env:
+      GROQ_API_KEY: offline-ci-placeholder
+      PINECONE_API_KEY: offline-ci-placeholder
+      TAVILY_API_KEY: offline-ci-placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -p test_scorecard.py -q
+      - run: python -m unittest discover -s tests -p test_knowledge_batches.py -q
+      - run: python -m unittest discover -s tests -p test_answer_citations.py -q
+      - run: python -m app.evaluation.scorecard --profile offline --output evals/reports/ci-offline
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: offline-scorecard
+          path: evals/reports/ci-offline.*
+  live:
+    if: github.event_name == 'workflow_dispatch' && inputs.live
+    needs: offline
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      GROQ_MODEL: ${{ vars.GROQ_MODEL || 'openai/gpt-oss-20b' }}
+      PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+      PINECONE_INDEX_NAME: ${{ vars.PINECONE_INDEX_NAME }}
+      TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+      CASE_LIMIT: ${{ inputs.limit }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements.txt
+      - name: Validate live configuration
+        run: |
+          python -c "import os; assert 1 <= int(os.environ['CASE_LIMIT']) <= 98; assert all(os.environ.get(k) for k in ('GROQ_API_KEY','PINECONE_API_KEY','PINECONE_INDEX_NAME','TAVILY_API_KEY')), 'Configure provider secrets and index variable first'"
+      - run: python -m app.evaluation.scorecard --profile knowledge --limit "$CASE_LIMIT" --delay 10 --output evals/reports/ci-live
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-scorecard
+          path: evals/reports/ci-live.*

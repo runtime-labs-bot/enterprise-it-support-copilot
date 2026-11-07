@@ -3,6 +3,7 @@ import os
 
 from dotenv import load_dotenv
 from groq import Groq
+from app.services.citations import validate_generated_answer, unsourced_answer
 
 load_dotenv()
 
@@ -101,8 +102,8 @@ Include source references.
     # 6. Extract and validate answer
     answer = response.choices[0].message.content
 
-    if not answer or not answer.strip():
-        raise ValueError("The LLM returned an empty answer.")
+    if not validate_generated_answer(answer, len(web_results), response.choices[0].finish_reason):
+        return unsourced_answer()
 
     # 7. Prepare source metadata
     sources = []

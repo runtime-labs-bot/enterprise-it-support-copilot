@@ -154,6 +154,15 @@ def _tool_definitions(tools, operator_role=None):
         }}
         for tool in tools if tool.name in allowed
     ]
+    # This value belongs to the trusted request boundary, never the model.
+    from copy import deepcopy
+    definitions = deepcopy(definitions)
+    for definition in definitions:
+        if definition['function']['name'] == 'create_ticket':
+            schema = definition['function']['parameters']
+            schema.get('properties', {}).pop('idempotency_key', None)
+            if 'required' in schema:
+                schema['required'] = [key for key in schema['required'] if key != 'idempotency_key']
     if operator_role == "admin":
         from app.services.admin_actions import AdminAction
         definitions.append({"type": "function", "function": {"name": "prepare_admin_action", "description": "Prepare one requested admin change for review. Does not execute it; the admin must press Confirm in chat.", "parameters": AdminAction.model_json_schema()}})
@@ -164,7 +173,7 @@ def _tool_content(result):
     return "\n".join(block.text for block in result.content if block.type == "text") or "No text returned"
 
 
-async def run_tool_loop(session, complete, question: str, context: str, max_rounds=6, operator_role=None):
+async def run_tool_loop(session, complete, question: str, context: str, max_rounds=6, operator_role=None, request_id=None):
     """Injectable model/session boundary for deterministic integration tests."""
     definitions = _tool_definitions((await session.list_tools()).tools, operator_role)
     if not definitions:
@@ -215,6 +224,7 @@ async def run_tool_loop(session, complete, question: str, context: str, max_roun
                 arguments = json.loads(call["function"]["arguments"])
                 if name not in allowed or not isinstance(arguments, dict):
                     raise ValueError("Unsupported tool or invalid arguments")
+                arguments.pop('idempotency_key', None)
                 if name == "prepare_admin_action":
                     from app.services.admin_actions import AdminAction
                     proposal = AdminAction.model_validate(arguments).model_dump()
@@ -227,7 +237,10 @@ async def run_tool_loop(session, complete, question: str, context: str, max_roun
             if name in DEDUPLICATED_TOOLS and cache_key in write_results:
                 text, failed = write_results[cache_key]
             else:
-                result = await session.call_tool(name, arguments)
+                call_arguments = dict(arguments)
+                if name == 'create_ticket' and request_id:
+                    call_arguments['idempotency_key'] = request_id
+                result = await session.call_tool(name, call_arguments)
                 text, failed = _tool_content(result), result.isError
                 if name in DEDUPLICATED_TOOLS:
                     write_results[cache_key] = (text, failed)
@@ -242,7 +255,7 @@ def _limit_result(trace):
     return {"meridian_handled": True, "answer": "The Meridian operation limit was reached. Check completed operations before continuing.", "sources": [], "status": "meridian_limit", "meridian_tools": trace}
 
 
-async def _run(question, context, employee_api_key=None, operator_role=None):
+async def _run(question, context, employee_api_key=None, operator_role=None, request_id=None):
     from groq import AsyncGroq
 
     # Retrying a model HTTP request never re-executes an MCP tool. Tool writes
@@ -261,7 +274,7 @@ async def _run(question, context, employee_api_key=None, operator_role=None):
                 }} for call in result.tool_calls or []
             ]}
         async with connect_meridian(employee_api_key) as session:
-            return await run_tool_loop(session, complete, question, context, operator_role=operator_role)
+            return await run_tool_loop(session, complete, question, context, operator_role=operator_role, request_id=request_id)
 
 
 def meridian_node(state, runtime: Runtime[MeridianContext] = None):
@@ -290,7 +303,11 @@ def meridian_node(state, runtime: Runtime[MeridianContext] = None):
         }
     try:
         employee_key = runtime.context.employee_api_key if runtime and runtime.context else None
-        return asyncio.run(_run(state["question"], context, employee_key, role))
+        from hashlib import sha256
+        from uuid import uuid4
+        message_id = getattr(messages[-1], 'id', None) if messages else None
+        request_id = sha256(str(message_id or uuid4()).encode()).hexdigest()
+        return asyncio.run(_run(state["question"], context, employee_key, role, request_id))
     except Exception:
         return {"meridian_handled": True, "answer": "The Meridian connection or model request failed. No result is confirmed; check ticket records before retrying a write.", "sources": [], "status": "meridian_unavailable", "meridian_tools": []}
 

@@ -269,6 +269,7 @@ if session["user"].get("role") == "admin" and not st.session_state.get("conversa
     render_admin_actions(api_request, st.session_state.thread_id)
 
 if question := st.chat_input("Ask your IT support question...", disabled=st.session_state.get("conversation_archived", False)):
+    request_id = str(uuid4())
     st.session_state.messages.append({"role": "user", "content": question})
     with st.chat_message("user"):
         st.markdown(question)
@@ -276,7 +277,7 @@ if question := st.chat_input("Ask your IT support question...", disabled=st.sess
         with st.spinner("Working on your request..."):
             try:
                 def send_question():
-                    return requests.post(API_URL, json={"question": question, "thread_id": st.session_state.thread_id}, headers={"Authorization": "Bearer " + st.session_state.auth_session["access_token"]}, timeout=120)
+                    return requests.post(API_URL, json={"question": question, "thread_id": st.session_state.thread_id, "request_id": request_id}, headers={"Authorization": "Bearer " + st.session_state.auth_session["access_token"]}, timeout=120)
                 response = send_question()
                 if response.status_code == 401:
                     refresh_login()

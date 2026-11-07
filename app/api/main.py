@@ -1,4 +1,6 @@
 from uuid import uuid4
+from hashlib import sha256
+import json
 from typing import Literal
 from fastapi import FastAPI, Header, HTTPException, Path, Query, Response
 from fastapi.exceptions import RequestValidationError
@@ -27,6 +29,7 @@ app.include_router(admin_chat_router(admin_actions, agent, history))
 class QuestionRequest(BaseModel):
     question: str = Field(min_length=1, max_length=8000)
     thread_id: str | None = Field(default=None, max_length=100)
+    request_id: str | None = Field(default=None, min_length=1, max_length=100, pattern=r'^[A-Za-z0-9._:-]+$')
 
 
 class LoginRequest(BaseModel):
@@ -156,12 +159,14 @@ def ask_question(request: QuestionRequest, authorization: str | None = Header(de
     thread_id = request.thread_id or str(uuid4())
     if history.is_archived(scope, thread_id):
         raise HTTPException(status_code=409, detail="Restore this conversation before continuing it")
+    request_id = request.request_id or str(uuid4())
+    message_id = sha256(json.dumps([thread_id, request_id]).encode()).hexdigest()
     result = agent.invoke(
-        {"question": request.question, "messages": [HumanMessage(content=request.question)]},
+        {"question": request.question, "messages": [HumanMessage(content=request.question, id=message_id)]},
         config={"configurable": {"thread_id": f"{scope}:{thread_id}"}},
         context=MeridianContext(employee_api_key=credential, operator_role=identity["role"]),
     )
-    response = {"question": request.question, "answer": result["answer"], "sources": result.get("sources", []), "status": result.get("status", "unknown"), "thread_id": thread_id}
+    response = {"question": request.question, "answer": result["answer"], "sources": result.get("sources", []), "status": result.get("status", "unknown"), "thread_id": thread_id, "request_id": request_id}
     if result.get("status") == "admin_confirmation_required" and result.get("admin_proposal"):
         if identity["role"] != "admin" or "id" not in identity:
             raise HTTPException(status_code=403, detail="Administrator access required")

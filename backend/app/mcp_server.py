@@ -17,10 +17,12 @@ READ = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldHint=F
 WRITE = ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=False)
 
 
-async def _request(method: str, path: str, *, params=None, body=None):
+async def _request(method: str, path: str, *, params=None, body=None, idempotency_key=None):
     settings = get_settings()
     credential = os.getenv("MERIDIAN_EMPLOYEE_KEY")
     headers = ({"X-API-Key": credential} if credential and credential.startswith("meridian_employee.") else {"Authorization": f"Bearer {credential}"}) if credential else {"X-API-Key": settings.support_api_key.get_secret_value()}
+    if idempotency_key is not None:
+        headers['Idempotency-Key'] = idempotency_key
     try:
         async with httpx.AsyncClient(base_url=settings.backend_url, headers=headers, timeout=15, trust_env=False, follow_redirects=False) as client:
             response = await client.request(method, path, params=params, json=body)
@@ -81,7 +83,7 @@ async def get_ticket_history(ticket_id: RecordId, offset: Offset = 0, limit: Lim
 
 
 @mcp.tool(annotations=WRITE)
-async def create_ticket(title: Annotated[str, Field(min_length=1, max_length=200)], description: Annotated[str, Field(min_length=1, max_length=10000)], employee_id: RecordId | None = None, device_id: RecordId | None = None, priority: TicketPriority = "medium") -> dict:
+async def create_ticket(title: Annotated[str, Field(min_length=1, max_length=200)], description: Annotated[str, Field(min_length=1, max_length=10000)], employee_id: RecordId | None = None, device_id: RecordId | None = None, priority: TicketPriority = "medium", idempotency_key: Annotated[str | None, Field(min_length=1, max_length=128, pattern=r'^[A-Za-z0-9._:-]+$')] = None) -> dict:
     """Create an open ticket ONLY when the user requests creation. Verify IDs and do not invent missing details or retry a write blindly."""
     if not os.getenv("MERIDIAN_EMPLOYEE_KEY"):
         raise ToolError("Sign in to the Copilot before creating a ticket.")
@@ -91,7 +93,7 @@ async def create_ticket(title: Annotated[str, Field(min_length=1, max_length=200
     if employee_id is not None and employee_id != identity["employee_id"]:
         raise ToolError("You can create tickets only for your authenticated employee account.")
     employee_id = identity["employee_id"]
-    return await _request("POST", "/tickets", body={"title": title, "description": description, "employee_id": employee_id, "device_id": device_id, "priority": priority})
+    return await _request("POST", "/tickets", body={"title": title, "description": description, "employee_id": employee_id, "device_id": device_id, "priority": priority}, idempotency_key=idempotency_key)
 
 
 @mcp.tool(annotations=READ)

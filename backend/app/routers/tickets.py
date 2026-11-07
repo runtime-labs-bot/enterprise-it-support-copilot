@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Path, Query, Response
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.security import Operator, get_operator, require_admin
@@ -35,8 +35,8 @@ def _save(operation, *args):
 
 
 @router.post("", response_model=TicketRead, status_code=201)
-def create_ticket(data: TicketCreate, db: Database, operator: CurrentOperator):
-    return _save(service.create_ticket, db, data, operator)
+def create_ticket(data: TicketCreate, db: Database, operator: CurrentOperator, idempotency_key: Annotated[str | None, Header(min_length=1, max_length=128, pattern=r'^[A-Za-z0-9._:-]+$')] = None):
+    return _save(service.create_ticket, db, data, operator, idempotency_key)
 
 
 @router.get("", response_model=list[TicketRead])

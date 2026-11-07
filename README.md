@@ -104,3 +104,7 @@ and execute only after Confirm. Password setup links appear privately in the UI.
 Employees can [edit their own ticket title/description before admin review](docs/ticket-review.md).
 Opening a ticket as admin locks those details; further employee clarification
 requires a new ticket. Self-service closure remains available after review.
+
+Ticket creation supports [durable idempotency keys](docs/ticket-idempotency.md)
+across API/MCP retries. The [evaluation guide](docs/evaluations.md) covers resumable
+live batches and the offline GitHub Actions workflow.

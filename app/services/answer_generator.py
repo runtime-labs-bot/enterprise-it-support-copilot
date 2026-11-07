@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from groq import Groq
+from app.services.citations import validate_generated_answer, unsourced_answer
 
 load_dotenv()
 
@@ -25,7 +26,7 @@ def generate_answer(question:str,retrieved_chunks:list[dict]):
     if not retrieved_chunks:
         return {
             "answer": "I could not find relevant information in the internal knowledge base to answer your question.",
-            "sources": []
+            "sources": [], "grounded": False
         }
 
     #preapre context from retrieved chunks
@@ -129,6 +130,9 @@ def generate_answer(question:str,retrieved_chunks:list[dict]):
     print("DEBUG: Response usage:", response.usage)
 
     answer = response.choices[0].message.content
+
+    if not validate_generated_answer(answer, len(sources), response.choices[0].finish_reason):
+        return unsourced_answer()
 
     return {
         "answer": answer,
