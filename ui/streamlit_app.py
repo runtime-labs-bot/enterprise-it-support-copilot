@@ -7,6 +7,7 @@ import streamlit as st
 from ui.admin_dashboard import render_admin_dashboard
 from ui.password_setup import render_password_setup
 from ui.admin_chat import render_admin_actions
+from ui import browser_login
 
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://127.0.0.1:8001/ask")
@@ -21,13 +22,18 @@ def clear_session(notice=None):
     for name in list(st.session_state):
         if name.startswith("admin_"):
             st.session_state.pop(name, None)
+    st.session_state.pop("browser_handle", None)
+    st.session_state.browser_restore_attempted = True
     if notice:
         st.session_state.login_notice = notice
 
 
 def refresh_login():
     current = st.session_state.auth_session
-    response = requests.post(AUTH_URL + "/refresh", json={"refresh_token": current["refresh_token"]}, timeout=20)
+    if st.session_state.get("browser_handle"):
+        response = browser_login.session_request(AUTH_URL, "restore", st.session_state.browser_handle, force_refresh=True)
+    else:
+        response = requests.post(AUTH_URL + "/refresh", json={"refresh_token": current["refresh_token"]}, timeout=20)
     if response.status_code == 401:
         clear_session("Your session ended. Please sign in again.")
         st.rerun()
@@ -101,9 +107,13 @@ st.title("IT Support Copilot")
 st.caption("Your workplace IT assistant")
 if "auth_session" not in st.session_state:
     render_password_setup(AUTH_URL)
+    browser_login.restore_browser_login(AUTH_URL)
     if notice := st.session_state.pop("login_notice", None):
         st.info(notice)
     st.subheader("Sign in")
+    if browser_login.enabled():
+        browser_login.render_login()
+        st.stop()
     login_choice = st.radio("Choose your login", ["Employee login", "Admin login"], horizontal=True, key="login_role")
     selected_role = "admin" if login_choice == "Admin login" else "employee"
     st.caption("Manage tickets, employees, and devices." if selected_role == "admin" else "Chat with IT support and manage your own tickets.")
@@ -152,7 +162,10 @@ st.sidebar.caption(session["user"]["email"])
 if st.sidebar.button("Sign out"):
     notice = "You have signed out."
     try:
-        requests.post(AUTH_URL + "/logout", json={"refresh_token": session["refresh_token"]}, timeout=20).raise_for_status()
+        if st.session_state.get("browser_handle"):
+            browser_login.session_request(AUTH_URL, "revoke", st.session_state.browser_handle).raise_for_status()
+        else:
+            requests.post(AUTH_URL + "/logout", json={"refresh_token": session["refresh_token"]}, timeout=20).raise_for_status()
     except requests.RequestException:
         notice = "Signed out on this device. The server could not confirm session revocation."
     clear_session(notice)

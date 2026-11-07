@@ -23,9 +23,10 @@ class DockerEnvironmentTests(unittest.TestCase):
             values = dotenv_values(root / ".env.docker", interpolate=False)
             self.assertEqual(values["GROQ_API_KEY"], "provider$literal")
             credentials = [value for key, value in values.items() if key.startswith("DOCKER_")]
-            self.assertEqual(len(credentials), 4)
-            self.assertEqual(len(set(credentials)), 4)
-            self.assertTrue(all(len(value) == 64 for value in credentials))
+            self.assertEqual(len(credentials), 6)
+            self.assertEqual(len(set(credentials)), 6)
+            self.assertEqual(len(values["DOCKER_BROWSER_SESSION_KEY"]), 44)
+            self.assertTrue(all(len(value) == 64 for key, value in values.items() if key.startswith("DOCKER_") and key != "DOCKER_BROWSER_SESSION_KEY"))
             self.assertNotIn("ADMIN_API_KEY", values)
             for secret in credentials + ["provider$literal", "must-not-copy"]:
                 self.assertNotIn(secret, output.getvalue())

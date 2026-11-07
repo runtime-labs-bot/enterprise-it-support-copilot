@@ -70,6 +70,10 @@ services:
       MERIDIAN_BACKEND_DIR: /opt/meridian
       MERIDIAN_MCP_PYTHON: /usr/local/bin/python
       MERIDIAN_BACKEND_URL: http://meridian:8000
+      COPILOT_PUBLIC_URL: ${COPILOT_PUBLIC_URL:-http://localhost:8501}
+      COPILOT_BROWSER_AUTH_URL: ${COPILOT_BROWSER_AUTH_URL:-http://localhost:8001/auth/browser}
+      BROWSER_SESSION_KEY: ${DOCKER_BROWSER_SESSION_KEY:?Run scripts/init_docker_env.py to add browser session keys}
+      BROWSER_UI_AUTH_KEY: ${DOCKER_BROWSER_UI_AUTH_KEY:?Run scripts/init_docker_env.py to add browser session keys}
     ports:
       - "127.0.0.1:${COPILOT_PORT:-8001}:8001"
     volumes:
@@ -92,6 +96,8 @@ services:
     environment:
       API_URL: http://copilot:8001/ask
       COPILOT_PUBLIC_URL: ${COPILOT_PUBLIC_URL:-http://localhost:8501}
+      COPILOT_BROWSER_AUTH_URL: ${COPILOT_BROWSER_AUTH_URL:-http://localhost:8001/auth/browser}
+      BROWSER_UI_AUTH_KEY: ${DOCKER_BROWSER_UI_AUTH_KEY:?Run scripts/init_docker_env.py to add browser session keys}
     ports:
       - "127.0.0.1:${STREAMLIT_PORT:-8501}:8501"
     depends_on:

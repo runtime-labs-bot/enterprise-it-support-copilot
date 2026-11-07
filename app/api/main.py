@@ -14,10 +14,12 @@ from app.services.conversation_history import ConversationHistory
 from app.api.admin import router as admin_router
 from app.api.admin_chat import create_router as admin_chat_router
 from app.services.admin_actions import AdminActionStore
+from app.api.browser_auth import router as browser_auth_router
 
 app = FastAPI(title="IT Support Copilot API", version="1.0.0")
 history = ConversationHistory(agent, CHECKPOINT_DB_PATH)
 app.include_router(admin_router)
+app.include_router(browser_auth_router)
 admin_actions = AdminActionStore(CHECKPOINT_DB_PATH)
 app.include_router(admin_chat_router(admin_actions, agent, history))
 

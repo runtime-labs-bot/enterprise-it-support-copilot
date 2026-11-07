@@ -60,6 +60,14 @@ and run-scoped context, not chat text or checkpoint state.
 
 ## Verification
 
+Use the [evaluation scorecard](docs/evaluations.md) for repeatable quality and
+permission results, strict failure gates, and baseline comparisons:
+
+```bat
+python -m app.evaluation.scorecard --profile checks
+python -m app.evaluation.scorecard --profile all --limit 5
+```
+
 ```bat
 python scripts\test_all.py
 python -m pip check
@@ -77,8 +85,8 @@ credentials, virtual environments, and SQLite checkpoint data must stay out of G
 
 Give employees a browser [password setup link](docs/password-setup.md) from the admin dashboard, then sign in normally. Access tokens refresh
 automatically; logout and password reset revoke login sessions. No API-key copying
-is required. Browser refresh/reopening may require a new login; persistent
-remember-me cookies are not implemented.
+is required. Docker deployments now [restore login after browser refresh](docs/browser-login.md)
+using an HttpOnly session cookie and encrypted server-side credentials.
 
 Previous chats are restored after sign-in and can be reopened from the sidebar.
 New chat starts a separate conversation. The login page has a Show password

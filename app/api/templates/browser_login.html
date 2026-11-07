@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sign in to IT Support Copilot</title>
+<style nonce="$nonce">
+body{font-family:Arial,sans-serif;color:#30333f;margin:24px 12px;background:white}form{max-width:680px;margin:0 auto}
+.roles{display:flex;gap:24px;margin:16px 0 24px}.field{display:block;margin:16px 0 8px}
+input[type=email],input[type=password],input[type=text]{box-sizing:border-box;width:100%;border:1px solid #d5d8de;background:#f3f4f7;border-radius:8px;padding:14px;font-size:16px}
+button{padding:12px 24px;margin-top:24px;border:1px solid #d5d8de;border-radius:8px;background:white;font-size:16px;cursor:pointer}button:hover{border-color:#ff4b4b;color:#e03b3b}
+.error{color:#aa2020}.note{color:#666;font-size:14px;line-height:1.5}.show{display:block;margin-top:16px}
+</style></head><body>
+<form method="post" action="$auth/login" target="_top">
+<h1>IT Support Copilot</h1><p class="note">Sign in with your work email. You will return to chat automatically.</p>
+<input type="hidden" name="csrf" value="$csrf">
+<div class="roles"><label><input type="radio" name="role" value="employee" $employee> Employee login</label>
+<label><input type="radio" name="role" value="admin" $admin> Admin login</label></div>
+<p class="error" role="alert">$message</p>
+<label class="field" for="email">Work email</label><input id="email" name="email" type="email" autocomplete="username" required maxlength="254">
+<label class="field" for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128">
+<label class="show"><input id="show" type="checkbox"> Show password</label>
+<button type="submit">Sign in</button><p class="note">Stay signed in on this browser until you sign out or your session expires. On shared computers, always sign out.</p>
+</form>
+<script nonce="$nonce">document.getElementById('show').addEventListener('change',function(){document.getElementById('password').type=this.checked?'text':'password';});</script>
+</body></html>

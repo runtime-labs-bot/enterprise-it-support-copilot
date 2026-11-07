@@ -1,7 +1,8 @@
 """Generate isolated Docker credentials without changing the local environment."""
 from pathlib import Path
 import secrets
-from dotenv import dotenv_values
+from dotenv import dotenv_values, set_key
+import base64
 
 ROOT = Path(__file__).resolve().parents[1]
 PROVIDERS = ("GROQ_API_KEY", "GROQ_MODEL", "PINECONE_API_KEY", "PINECONE_INDEX_NAME", "TAVILY_API_KEY")
@@ -10,7 +11,15 @@ PROVIDERS = ("GROQ_API_KEY", "GROQ_MODEL", "PINECONE_API_KEY", "PINECONE_INDEX_N
 def initialize(root=ROOT):
     destination = root / ".env.docker"
     if destination.exists():
-        print(".env.docker already exists; left unchanged.")
+        existing = dotenv_values(destination, interpolate=False)
+        additions = {
+            "DOCKER_BROWSER_SESSION_KEY": base64.urlsafe_b64encode(secrets.token_bytes(32)).decode(),
+            "DOCKER_BROWSER_UI_AUTH_KEY": secrets.token_hex(32),
+        }
+        for key, value in additions.items():
+            if not existing.get(key):
+                set_key(str(destination), key, value)
+        print("Existing Docker credentials preserved; missing browser-session keys added. No secrets displayed.")
         return
     local = dotenv_values(root / ".env", interpolate=False)
     values = {key: local.get(key) or "" for key in PROVIDERS}
@@ -19,6 +28,8 @@ def initialize(root=ROOT):
     values.update({key: secrets.token_hex(32) for key in (
         "DOCKER_DB_PASSWORD", "DOCKER_AUTH_JWT_SECRET", "DOCKER_ADMIN_API_KEY", "DOCKER_SUPPORT_API_KEY")})
     values["COPILOT_PUBLIC_URL"] = "http://localhost:8501"
+    values["DOCKER_BROWSER_SESSION_KEY"] = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode()
+    values["DOCKER_BROWSER_UI_AUTH_KEY"] = secrets.token_hex(32)
     # Single quotes prevent Compose expanding $ in provider credentials.
     if any("'" in value or "\n" in value or "\r" in value for value in values.values()):
         raise ValueError("Use single-line provider credentials without single quotes")

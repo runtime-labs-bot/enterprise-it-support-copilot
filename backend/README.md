@@ -137,8 +137,9 @@ reveal whether an account exists.
 
 The Streamlit UI keeps tokens in server-side session state and refreshes them
 automatically. Passwords and tokens do not go to the model or checkpoints. A
-browser refresh/reopened tab may require another normal login; persistent browser
-remember-me cookies are not implemented. Logout revokes server access and clears
+browser refresh/reopened tab now restores login through the Copilot's encrypted
+server-side browser session vault and HttpOnly cookie. See
+[browser login](../docs/browser-login.md). Logout revokes server access and clears
 the chat state. API clients send Authorization: Bearer <access JWT>.
 
 Legacy employee keys are refused once a password account exists, and no new
@@ -184,8 +185,8 @@ are scoped to the employee. Employee/device mutations and general ticket status
 changes require an admin. Internal admin/support service keys retain trusted
 operational access. This is a local development deployment; production requires
 HTTPS, managed secrets, broader request-rate controls, monitoring, and an account
-recovery process. SSO/MFA and persistent browser remember-me cookies are not part
-of this implementation.
+recovery process. SSO/MFA are not part of this implementation. Persistent browser
+login is implemented in the Copilot layer with backend session verification.
 
 ## Admin dashboard APIs
 

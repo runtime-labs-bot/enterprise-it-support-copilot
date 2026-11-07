@@ -64,9 +64,10 @@ Fresh installations must install the backend requirements before migrations.
 - Five incorrect password attempts lock the account for fifteen minutes. Errors
   do not reveal whether the email has a login account.
 
-The active Streamlit tab retains its login across chat interactions. Refreshing
-or reopening the browser tab can require another ordinary login; persistent
-browser remember-me cookies are not implemented. If a logout request cannot
+The active Streamlit tab retains its login across chat interactions. Docker
+deployments now restore login after refresh/reopening using a protected browser
+cookie and encrypted server-side session vault; see [browser login](browser-login.md).
+The unconfigured local-development form remains session-only. If a logout request cannot
 reach the server, the UI clears local state and reports that server revocation
 could not be confirmed.
 
@@ -148,7 +149,8 @@ normal login, failure messages, automatic refresh, expiry, and sign-out.
 
 This is still a local development deployment. Production requires HTTPS,
 managed secrets, broader request-rate controls, operational monitoring, and an
-account recovery process. SSO/MFA and persistent remember-me cookies are not added.
+account recovery process. SSO/MFA are not added. Browser persistence is available
+through the Copilot cookie/session bridge.
 
 References: https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/ and
 https://frankie567.github.io/pwdlib/guide/
