@@ -43,6 +43,7 @@ class MeridianApiTests(unittest.TestCase):
             self.assertEqual(first.json()["thread_id"], "same-public-thread")
             args, kwargs = invoke.call_args
             self.assertEqual(kwargs["context"].employee_api_key, "private-test-one")
+            self.assertEqual(kwargs["context"].operator_role, "employee")
             self.assertNotIn("private-test-one", repr(args))
             self.assertNotIn("private-test-one", repr(kwargs["config"]))
             scope_one = kwargs["config"]["configurable"]["thread_id"]
@@ -121,7 +122,7 @@ class MeridianUiTests(unittest.TestCase):
         self.assertEqual(len(page.error), 1)
         self.assertNotIn("auth_session", page.session_state)
 
-    def test_admin_login_opens_dashboard(self):
+    def test_admin_login_opens_admin_chat(self):
         page = self.page().run()
         page.radio[0].set_value("Admin login").run()
         page.text_input[0].input("admin@example.com")
@@ -130,13 +131,13 @@ class MeridianUiTests(unittest.TestCase):
         session["user"]["role"] = "admin"
         session["user"]["email"] = "admin@example.com"
         summary = {"employees": {"total": 2, "active": 2}, "devices": {"total": 1, "unassigned": 0}, "tickets": {"open": 1, "in_progress": 0, "resolved": 0, "closed": 0, "high_priority_active": 0}}
-        with patch("requests.post", return_value=reply(session)) as post, patch("requests.get", return_value=reply(summary)):
+        with patch("requests.post", return_value=reply(session)) as post, patch("requests.get", return_value=reply({"items": [], "next_offset": None})):
             page.button[0].click().run()
         self.assertEqual(len(page.exception), 0)
         self.assertEqual(post.call_args.kwargs["json"]["role"], "admin")
-        self.assertEqual(page.sidebar.radio[0].value, "Admin dashboard")
-        self.assertEqual(len(page.chat_input), 0)
-        self.assertIn("Admin dashboard", [item.value for item in page.header])
+        self.assertEqual(page.sidebar.radio[0].value, "Admin chat")
+        self.assertEqual(len(page.chat_input), 1)
+        self.assertIn("Admin dashboard", page.sidebar.radio[0].options)
 
     def test_wrong_role_login_does_not_create_ui_session(self):
         page = self.page().run()

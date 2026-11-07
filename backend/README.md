@@ -75,8 +75,12 @@ access. Delete permanently removes the ticket and its history; prefer closure.
 
 An authenticated reporting employee can create only for their own employee ID
 and close their own ticket from open, in_progress, or resolved after fixing the
-issue. They do not need to wait for support. Other status changes, reopening,
-reassignment, edits, and deletion are not available to employee credentials.
+issue. They do not need to wait for support. They may edit their own open ticket's
+title and description until its first admin review. Admin detail reads or updates
+permanently lock employee content edits; additional details then require a new
+ticket. Queue browsing does not count as review. Other status changes, reopening,
+reassignment, device/priority changes, and deletion remain admin-only. See
+[review locking](../docs/ticket-review.md).
 POST /tickets/{id}/close and employee PATCH with only status=closed enforce the
 same ownership checks. Another employee or service role is rejected with 403.
 Repeated closure by the owner is a no-op.

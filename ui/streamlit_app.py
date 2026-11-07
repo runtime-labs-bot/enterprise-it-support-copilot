@@ -6,6 +6,7 @@ import requests
 import streamlit as st
 from ui.admin_dashboard import render_admin_dashboard
 from ui.password_setup import render_password_setup
+from ui.admin_chat import render_admin_actions
 
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://127.0.0.1:8001/ask")
@@ -122,7 +123,7 @@ if "auth_session" not in st.session_state:
                 st.session_state.auth_session = response.json()
                 st.session_state.thread_id = str(uuid4())
                 st.session_state.messages = []
-                st.session_state.workspace = "Admin dashboard" if selected_role == "admin" else "Chat"
+                st.session_state.workspace = "Admin chat" if selected_role == "admin" else "Chat"
                 st.rerun()
         except requests.RequestException:
             st.error("The sign-in service is unavailable. Please try again.")
@@ -158,10 +159,13 @@ if st.sidebar.button("Sign out"):
     st.rerun()
 
 if session["user"].get("role") == "admin":
-    workspace = st.sidebar.radio("Workspace", ["Chat", "Admin dashboard"], key="workspace")
+    if st.session_state.get("workspace") not in {"Admin chat", "Admin dashboard"}:
+        st.session_state.workspace = "Admin chat"
+    workspace = st.sidebar.radio("Workspace", ["Admin chat", "Admin dashboard"], key="workspace")
     if workspace == "Admin dashboard":
         render_admin_dashboard(api_request)
         st.stop()
+    st.caption("Admin chat: search records, review dashboard totals, and prepare employee, device, ticket, or login changes. Confirm each change in its action card.")
 
 if st.sidebar.button("New chat"):
     st.session_state.thread_id = str(uuid4())
@@ -180,7 +184,9 @@ try:
     first_load = not st.session_state.get("history_loaded")
     if first_load or st.session_state.get("history_filter") != (search, archived):
         load_history_index()
-        if first_load and not search and not archived and st.session_state.conversations:
+        if refresh_thread := st.session_state.pop("admin_refresh_thread", None):
+            load_conversation(refresh_thread)
+        elif first_load and not search and not archived and st.session_state.conversations:
             load_conversation(st.session_state.conversations[0]["thread_id"])
         st.session_state.history_loaded = True
         st.session_state.history_filter = (search, archived)
@@ -245,6 +251,9 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         show_sources(message.get("sources", []))
+
+if session["user"].get("role") == "admin" and not st.session_state.get("conversation_archived", False):
+    render_admin_actions(api_request, st.session_state.thread_id)
 
 if question := st.chat_input("Ask your IT support question...", disabled=st.session_state.get("conversation_archived", False)):
     st.session_state.messages.append({"role": "user", "content": question})

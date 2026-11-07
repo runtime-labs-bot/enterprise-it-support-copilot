@@ -9,7 +9,7 @@ from pydantic import Field
 from app.config import get_settings
 from app.schemas.ticket import TicketPriority, TicketStatus
 
-mcp = FastMCP("Meridian IT", instructions="Employee/device lookup and ticket creation/history. Admins resolve tickets; authenticated reporters may close their own tickets when the issue is fixed, including before support acts. General status updates and administrative operations are not exposed.")
+mcp = FastMCP("Meridian IT", instructions="Authenticated employee/device/ticket lookup and self-service operations. Admin-only searchable queues and summaries are protected by REST role checks. Copilot admin mutations use a separate reviewed confirmation flow.")
 RecordId = Annotated[int, Field(gt=0, le=2147483647)]
 Offset = Annotated[int, Field(ge=0)]
 Limit = Annotated[int, Field(ge=1, le=100)]
@@ -60,9 +60,9 @@ async def list_devices(assigned_employee_id: RecordId | None = None, offset: Off
     return await _request("GET", "/devices", params=params)
 
 
-@mcp.tool(annotations=READ)
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False, openWorldHint=False))
 async def get_ticket(ticket_id: RecordId) -> dict:
-    """Retrieve a support ticket and its current status."""
+    """Open a support ticket. Admin opens record its first review and lock employee title/description edits; employee reads do not mark review."""
     return await _request("GET", f"/tickets/{ticket_id}")
 
 
@@ -106,6 +106,52 @@ async def close_ticket(ticket_id: RecordId) -> dict:
     if not os.getenv("MERIDIAN_EMPLOYEE_KEY"):
         raise ToolError("Sign in to the Copilot before closing a ticket.")
     return await _request("POST", f"/tickets/{ticket_id}/close")
+
+
+@mcp.tool(annotations=WRITE)
+async def edit_ticket(ticket_id: RecordId, title: Annotated[str | None, Field(min_length=1, max_length=200)] = None, description: Annotated[str | None, Field(min_length=1, max_length=10000)] = None) -> dict:
+    """Edit your own open ticket title/description before its first admin review. Ask for the replacement text if absent. Review locks are checked atomically by the backend. After review, create a new ticket for extra details; do not retry a rejected edit."""
+    if not os.getenv("MERIDIAN_EMPLOYEE_KEY"):
+        raise ToolError("Sign in before editing a ticket.")
+    identity = await _request("GET", "/identity")
+    if identity["role"] != "employee":
+        raise ToolError("Use the reviewed admin action flow for admin edits.")
+    changes = {key: value for key, value in {"title": title, "description": description}.items() if value is not None}
+    if not changes:
+        raise ToolError("Provide the replacement title or description before editing.")
+    return await _request("PATCH", f"/tickets/{ticket_id}", body=changes)
+
+
+@mcp.tool(annotations=READ)
+async def admin_get_summary() -> dict:
+    """Admin-only employee/device/ticket totals and active urgent ticket counts."""
+    return await _request("GET", "/admin/summary")
+
+
+@mcp.tool(annotations=READ)
+async def admin_search_employees(search: Annotated[str, Field(max_length=200)] = "", is_active: bool | None = None, offset: Offset = 0, limit: Limit = 20) -> dict:
+    """Admin-only search by employee name/email. Resolve names before preparing edits; ask if multiple matches."""
+    params = {"search": search, "offset": offset, "limit": limit}
+    if is_active is not None:
+        params["is_active"] = is_active
+    return await _request("GET", "/admin/employees", params=params)
+
+
+@mcp.tool(annotations=READ)
+async def admin_search_devices(search: Annotated[str, Field(max_length=200)] = "", assigned_employee_id: RecordId | None = None, offset: Offset = 0, limit: Limit = 20) -> dict:
+    """Admin-only hardware/serial search and assignment filtering. Paginate for more results."""
+    params = {"search": search, "offset": offset, "limit": limit}
+    if assigned_employee_id is not None:
+        params["assigned_employee_id"] = assigned_employee_id
+    return await _request("GET", "/admin/devices", params=params)
+
+
+@mcp.tool(annotations=READ)
+async def admin_search_tickets(search: Annotated[str, Field(max_length=200)] = "", status: TicketStatus | None = None, priority: TicketPriority | None = None, employee_id: RecordId | None = None, offset: Offset = 0, limit: Limit = 20) -> dict:
+    """Admin-only searchable ticket queue with total count, status/priority/reporter filters."""
+    params = {"search": search, "offset": offset, "limit": limit}
+    params.update({key: value for key, value in {"status": status, "priority": priority, "employee_id": employee_id}.items() if value is not None})
+    return await _request("GET", "/admin/tickets", params=params)
 
 
 if __name__ == "__main__":

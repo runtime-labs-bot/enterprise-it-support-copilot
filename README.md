@@ -88,3 +88,11 @@ Conversation management includes search, rename, and archive/restore. Admin
 accounts also have a dashboard for operational totals, ticket updates/history,
 employee records, and device assignments. See the integration guide for admin
 account setup and permissions. Dashboard actions use protected REST endpoints.
+
+Admins can now perform those operations in [Admin chat](docs/admin-chat.md).
+Read tools show searchable queues and summaries; mutations create a review card
+and execute only after Confirm. Password setup links appear privately in the UI.
+
+Employees can [edit their own ticket title/description before admin review](docs/ticket-review.md).
+Opening a ticket as admin locks those details; further employee clarification
+requires a new ticket. Self-service closure remains available after review.

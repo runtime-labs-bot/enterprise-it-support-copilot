@@ -12,10 +12,14 @@ from app.services.meridian_auth import backend_request
 from app.agent.graph import CHECKPOINT_DB_PATH
 from app.services.conversation_history import ConversationHistory
 from app.api.admin import router as admin_router
+from app.api.admin_chat import create_router as admin_chat_router
+from app.services.admin_actions import AdminActionStore
 
 app = FastAPI(title="IT Support Copilot API", version="1.0.0")
 history = ConversationHistory(agent, CHECKPOINT_DB_PATH)
 app.include_router(admin_router)
+admin_actions = AdminActionStore(CHECKPOINT_DB_PATH)
+app.include_router(admin_chat_router(admin_actions, agent, history))
 
 
 class QuestionRequest(BaseModel):
@@ -153,6 +157,11 @@ def ask_question(request: QuestionRequest, authorization: str | None = Header(de
     result = agent.invoke(
         {"question": request.question, "messages": [HumanMessage(content=request.question)]},
         config={"configurable": {"thread_id": f"{scope}:{thread_id}"}},
-        context=MeridianContext(employee_api_key=credential),
+        context=MeridianContext(employee_api_key=credential, operator_role=identity["role"]),
     )
-    return {"question": request.question, "answer": result["answer"], "sources": result.get("sources", []), "status": result.get("status", "unknown"), "thread_id": thread_id}
+    response = {"question": request.question, "answer": result["answer"], "sources": result.get("sources", []), "status": result.get("status", "unknown"), "thread_id": thread_id}
+    if result.get("status") == "admin_confirmation_required" and result.get("admin_proposal"):
+        if identity["role"] != "admin" or "id" not in identity:
+            raise HTTPException(status_code=403, detail="Administrator access required")
+        response["pending_action"] = admin_actions.propose(scope, thread_id, result["admin_proposal"], authorization)
+    return response

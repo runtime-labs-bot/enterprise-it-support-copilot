@@ -70,6 +70,11 @@ def ticket_history(record_id: RecordId, response: Response, authorization: Admin
     return forward(f"/tickets/{record_id}/history", authorization, response, params={"offset": offset, "limit": limit})
 
 
+@router.get("/tickets/{record_id}")
+def open_ticket(record_id: RecordId, response: Response, authorization: Admin):
+    return forward(f"/tickets/{record_id}", authorization, response)
+
+
 @router.patch("/tickets/{record_id}")
 def update_ticket(record_id: RecordId, response: Response, authorization: Admin, data: dict = Body(...)):
     data = dict(data)

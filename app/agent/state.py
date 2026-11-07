@@ -18,3 +18,4 @@ class AgentState(TypedDict, total=False):
     contextual_question: str
     meridian_handled: bool
     meridian_tools: list[str]
+    admin_proposal: dict | None

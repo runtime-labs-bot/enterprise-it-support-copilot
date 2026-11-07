@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Annotated, Literal
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator, computed_field
 
 TicketStatus = Literal["open", "in_progress", "resolved", "closed"]
 TicketPriority = Literal["low", "medium", "high", "urgent"]
@@ -53,6 +53,13 @@ class TicketRead(BaseModel):
     priority: TicketPriority
     created_at: datetime
     updated_at: datetime
+    reviewed_at: datetime | None = None
+    reviewed_by_employee_id: int | None = None
+
+    @computed_field
+    @property
+    def employee_can_edit(self) -> bool:
+        return self.reviewed_at is None and self.status == "open"
 
 
 class TicketHistoryRead(BaseModel):

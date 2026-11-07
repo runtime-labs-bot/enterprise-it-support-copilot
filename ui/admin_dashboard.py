@@ -77,8 +77,10 @@ def tickets(api):
     selected = st.selectbox("Open a ticket", list(by_id), index=None, format_func=lambda value: f"#{value} · {by_id[value]['title']}", key="admin_ticket_selected")
     if selected is None:
         return
-    row = by_id[selected]
+    row = api("GET", f"/admin/tickets/{selected}")
     st.subheader(f"Ticket #{selected}")
+    if row.get("reviewed_at"):
+        st.caption("Reviewed: " + row["reviewed_at"] + ". Employee title/description edits are now locked.")
     st.write(row["description"])
     override = st.checkbox("Override workflow", key=f"admin_ticket_override_{selected}", help="Overrides require a reason and are recorded in status history.")
     options = STATUSES if override else [row["status"]] + TRANSITIONS[row["status"]]

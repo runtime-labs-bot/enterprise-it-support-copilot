@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -57,6 +58,7 @@ def create_ticket(db: Session, data: TicketCreate, operator: Operator):
         raise EmployeeActionDeniedError("You can create tickets only for yourself")
     _check_links(db, values)
     ticket = Ticket(**values)
+    _record_review(ticket, operator)
     db.add(ticket)
     try:
         db.flush()  # Obtain the ID in the same transaction as its creation event.
@@ -78,20 +80,51 @@ def get_ticket(db: Session, ticket_id: int):
     return db.get(Ticket, ticket_id)
 
 
+def _locked_ticket(db, ticket_id):
+    ticket = db.scalar(select(Ticket).where(Ticket.id == ticket_id).with_for_update().execution_options(populate_existing=True))
+    if ticket is None:
+        raise LinkedRecordNotFoundError("Ticket not found")
+    return ticket
+
+
+def _record_review(ticket, operator):
+    if operator.role == "admin" and ticket.reviewed_at is None:
+        ticket.reviewed_at = datetime.now(timezone.utc)
+        ticket.reviewed_by_employee_id = operator.employee_id
+        return True
+    return False
+
+
+def open_ticket(db, ticket, operator):
+    if operator.role != "admin":
+        return ticket
+    ticket = _locked_ticket(db, ticket.id)
+    return _save(db, ticket) if _record_review(ticket, operator) else ticket
+
+
 def update_ticket(db: Session, ticket: Ticket, data: TicketUpdate, operator: Operator, admin_override: bool = False):
     values = data.model_dump(exclude_unset=True)
     reason = values.pop("reason", None)
     if operator.role == "employee":
         if values == {"status": "closed"}:
             return close_ticket(db, ticket, operator)
-        raise EmployeeActionDeniedError("Employees can only close their own tickets")
+        if not values or set(data.model_fields_set) - {"title", "description"}:
+            raise EmployeeActionDeniedError("Employees may edit only their own unreviewed ticket title/description, or close their own ticket")
+        ticket = _locked_ticket(db, ticket.id)
+        if ticket.employee_id != operator.employee_id:
+            raise EmployeeActionDeniedError("You can edit only your own ticket")
+        if ticket.reviewed_at is not None:
+            raise WorkflowConflictError("An administrator has already reviewed this ticket. Its details are locked. Create a new ticket to add details or clarify the issue.")
+        if ticket.status != "open":
+            raise WorkflowConflictError("Only an open, unreviewed ticket can be edited. Create a new ticket to add details or clarify the issue.")
+        for field, value in values.items():
+            setattr(ticket, field, value)
+        return _save(db, ticket)
     # Status is privileged even if a caller submits the current value.
     if "status" in values and operator.role != "admin":
         raise AdminRequiredError
     # Serialize transitions and reload any stale ORM instance after acquiring the lock.
-    ticket = db.scalar(select(Ticket).where(Ticket.id == ticket.id).with_for_update().execution_options(populate_existing=True))
-    if ticket is None:
-        raise LinkedRecordNotFoundError("Ticket not found")
+    ticket = _locked_ticket(db, ticket.id)
     if admin_override and operator.role != "admin":
         raise AdminRequiredError
     if operator.role != "admin" and any(field in values and values[field] != getattr(ticket, field) for field in ("employee_id", "priority")):
@@ -106,6 +139,7 @@ def update_ticket(db: Session, ticket: Ticket, data: TicketUpdate, operator: Ope
             if not reason:
                 raise WorkflowConflictError("A reason is required for an administrator status override")
     _check_links(db, values)
+    _record_review(ticket, operator)
     for field, value in values.items():
         setattr(ticket, field, value)
     if new_status != old_status:

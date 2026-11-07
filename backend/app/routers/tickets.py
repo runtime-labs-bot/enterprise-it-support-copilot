@@ -58,8 +58,9 @@ def list_tickets(
 
 
 @router.get("/{ticket_id}", response_model=TicketRead)
-def get_ticket(ticket_id: TicketId, db: Database, operator: CurrentOperator):
-    return _get_or_404(db, ticket_id, operator)
+def get_ticket(ticket_id: TicketId, db: Database, operator: CurrentOperator, response: Response):
+    response.headers["Cache-Control"] = "no-store"
+    return _save(service.open_ticket, db, _get_or_404(db, ticket_id, operator), operator)
 
 
 @router.patch("/{ticket_id}", response_model=TicketRead)

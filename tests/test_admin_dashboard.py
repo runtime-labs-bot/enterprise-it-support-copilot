@@ -56,6 +56,8 @@ class AdminUiTests(unittest.TestCase):
         def get(url, **kwargs):
             if url.endswith("/history"):
                 return reply([])
+            if url.endswith("/admin/tickets/29"):
+                return reply(dict(row))
             return reply({"items": [dict(row)], "total": 1})
         page = self.admin_page("Tickets", get)
         with patch("requests.get", side_effect=get):

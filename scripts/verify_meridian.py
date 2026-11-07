@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT))
 import httpx
 from dotenv import dotenv_values, load_dotenv
 
-from app.agent.meridian import ALLOWED_TOOLS, connect_meridian, meridian_installation, run_tool_loop
+from app.agent.meridian import ALLOWED_TOOLS, ADMIN_READ_TOOLS, connect_meridian, meridian_installation, run_tool_loop
 
 
 def decode(result):
@@ -29,7 +29,8 @@ def decode(result):
 async def verify_tools(employee_id, device_id, ticket_ids, employee_key, admin_client):
     async with connect_meridian(employee_key) as session:
         tools = (await session.list_tools()).tools
-        assert {tool.name for tool in tools} == ALLOWED_TOOLS
+        assert {tool.name for tool in tools} == ALLOWED_TOOLS | ADMIN_READ_TOOLS
+        assert (await session.call_tool("admin_get_summary", {})).isError
         assert decode(await session.call_tool("get_employee", {"employee_id": employee_id}))["id"] == employee_id
         assert decode(await session.call_tool("get_device", {"device_id": device_id}))["id"] == device_id
         for name, args in (("list_employees", {}), ("list_devices", {"assigned_employee_id": employee_id}), ("list_tickets", {"employee_id": employee_id})):
@@ -41,6 +42,11 @@ async def verify_tools(employee_id, device_id, ticket_ids, employee_key, admin_c
         ticket_id = created["id"]
         ticket_ids.append(ticket_id)
         assert created["status"] == "open"
+        edited = decode(await session.call_tool("edit_ticket", {"ticket_id": ticket_id, "description": "Updated before review"}))
+        assert edited["employee_can_edit"] and edited["description"] == "Updated before review"
+        opened = admin_client.get(f"/tickets/{ticket_id}")
+        assert opened.status_code == 200 and opened.json()["reviewed_at"] is not None
+        assert (await session.call_tool("edit_ticket", {"ticket_id": ticket_id, "description": "Should be rejected"})).isError
         assert decode(await session.call_tool("get_current_employee", {}))["employee_id"] == employee_id
         self_fixed = decode(await session.call_tool("create_ticket", {
             "title": "Self-fixed fixture", "description": "Reporter fixed it before support responded",
@@ -156,6 +162,8 @@ def main():
                     new_employee = api.post("/admin/employees", json={"full_name": "Dashboard Created Fixture", "email": f"created-{token}@example.com"}, headers=admin_headers)
                     assert new_employee.status_code == 201
                     extra_employee_ids.append(new_employee.json()["id"])
+                    from scripts.admin_chat_checks import verify_admin_chat
+                    verify_admin_chat(api, client, admin_headers, employee_headers)
                     assert api.post("/auth/logout", json={"refresh_token": admin_tokens["refresh_token"]}).status_code == 204
                 print("PASS: real admin dashboard API counts/queue/status history, ticket override, employee creation and device assignment; employee denied")
                 if not args.live_model:

@@ -93,6 +93,7 @@ normal employees never see them. Do not share secrets in chat or commit .env.
 | Read devices | Assigned devices only | All |
 | Read/list tickets and history | Own tickets only | All |
 | Create ticket | Own employee account | Allowed |
+| Edit ticket title/description | Own open ticket before first admin review | Allowed |
 | Close open/in_progress/resolved ticket after fixing it | Own ticket only | Allowed |
 | Resolve/reopen/reassign/delete or change existing priority | No | Allowed |
 | Create/edit/delete employees or devices | No | Allowed |
@@ -102,12 +103,14 @@ Explicitly requesting another employee's list returns 403. Unauthenticated reads
 are rejected. Ownership is enforced at the backend independently of model prompts.
 Admins may use a login JWT as the HTTP Bearer credential in Meridian Swagger;
 normal status changes use PATCH /tickets/{id}, overrides via /admin need a reason.
-The chat MCP tools remain employee-facing; generic admin status edits are not
-exposed as model tools.
+Admin chat prepares dashboard mutations for explicit confirmation; see
+[Admin chat](admin-chat.md). Employee chat has a separate restricted tool set.
 
-The ten selected MCP tools are get_employee, list_employees, get_device,
+The employee MCP tools are get_employee, list_employees, get_device,
 list_devices, get_ticket, list_tickets, get_ticket_history, get_current_employee,
-create_ticket, and close_ticket. History records actual status transitions and
+create_ticket, edit_ticket, and close_ticket. Opening an individual ticket as
+admin records first review and locks employee detail edits; queue listings do not.
+See [review rules](ticket-review.md). History records actual status transitions and
 the employee who closed a ticket. Duplicate closure by the owner is a no-op.
 
 ## Configuration and tests

@@ -22,5 +22,8 @@ class Ticket(Base):
     )
     status: Mapped[str] = mapped_column(String(20), server_default=text("'open'"))
     priority: Mapped[str] = mapped_column(String(20), server_default=text("'medium'"))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Retain the actor ID even if the administrator's employee record is removed.
+    reviewed_by_employee_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

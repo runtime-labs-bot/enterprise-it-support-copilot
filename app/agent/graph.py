@@ -1,6 +1,7 @@
 from langgraph.graph import StateGraph, START, END
 
 from app.agent.state import AgentState
+from app.agent.fallback import insufficient_context_response
 from app.agent.meridian import MeridianContext, meridian_node, route_after_meridian
 from app.agent.retrieval_grader import grade_retrieval
 from app.services.answer_generator import generate_answer
@@ -196,21 +197,7 @@ def generate_response(state: AgentState) -> dict:
 #Node4 Handle insufficient internal knowledge
 
 def handle_insufficient_context(state:AgentState)->dict:
-    grading_result=state["grading_result"]
-
-    answer = (
-        "I could not find sufficiently relevant information "
-        "in the internal IT knowledge base to answer your question.\n\n"
-        f"Reason: {grading_result.get('reason', 'Insufficient context')}\n\n"
-        f"Missing information: "
-        f"{grading_result.get('missing_information', 'Not specified')}"
-    )
-
-    return {
-        "answer":answer,
-        "sources":[],
-        "status":"insufficient_context"
-    }
+    return insufficient_context_response(state["grading_result"])
 
 # Handle questions outside the IT support domain
 

@@ -91,7 +91,7 @@ class EmployeeClosureTests(unittest.TestCase):
     def test_employee_cannot_resolve_reopen_reassign_or_delete(self):
         ticket_id = self.ticket()
         endpoint = f"/tickets/{ticket_id}"
-        for payload in ({"status": "resolved"}, {"status": "in_progress"}, {"status": "open"}, {"employee_id": self.other}, {"priority": "urgent"}, {"title": "Changed"}):
+        for payload in ({"status": "resolved"}, {"status": "in_progress"}, {"status": "open"}, {"employee_id": self.other}, {"priority": "urgent"}):
             self.assertEqual(self.client.patch(endpoint, json=payload, headers=self.owner_headers).status_code, 403)
         self.assertEqual(self.client.delete(endpoint, headers=self.owner_headers).status_code, 403)
         self.assertEqual(self.client.patch(endpoint + "/admin", json={"status": "resolved", "reason": "Claiming admin"}, headers=self.owner_headers).status_code, 403)
