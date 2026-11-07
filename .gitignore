@@ -38,3 +38,4 @@ data/chroma_db/
 # Evaluation outputs
 evals/results.json
 evals/retrieval_results.json
+evals/reports/

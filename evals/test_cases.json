@@ -10,7 +10,13 @@
     "notes": "Self-service reset steps.",
     "tags": [
       "password"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-002",
@@ -24,7 +30,13 @@
     "tags": [
       "password",
       "paraphrase"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-003",
@@ -37,7 +49,13 @@
     "notes": "Lost phone: report it, then a Temporary Access Pass from the Service Desk.",
     "tags": [
       "mfa"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-004",
@@ -50,7 +68,13 @@
     "notes": "Moving MFA to a new phone section.",
     "tags": [
       "mfa"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-005",
@@ -63,7 +87,13 @@
     "notes": "First-line troubleshooting steps.",
     "tags": [
       "vpn"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-006",
@@ -77,7 +107,13 @@
     "tags": [
       "vpn",
       "error-table"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-007",
@@ -90,7 +126,13 @@
     "notes": "No local admin rights; use Company Portal or the request process.",
     "tags": [
       "software"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-008",
@@ -103,7 +145,13 @@
     "notes": "Request workflow and approval steps.",
     "tags": [
       "software"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-009",
@@ -119,7 +167,13 @@
       "password",
       "mfa",
       "multi-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-010",
@@ -135,7 +189,13 @@
       "vpn",
       "password",
       "multi-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-011",
@@ -149,7 +209,13 @@
     "tags": [
       "vpn",
       "policy-trap"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-012",
@@ -160,7 +226,13 @@
     "notes": "Not covered by internal docs. Public documentation is appropriate.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-013",
@@ -171,7 +243,13 @@
     "notes": "General Windows troubleshooting.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-014",
@@ -182,7 +260,13 @@
     "notes": "General networking question.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-015",
@@ -194,7 +278,13 @@
     "tags": [
       "hr-policy",
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   },
   {
     "id": "tc-016",
@@ -206,7 +296,13 @@
     "tags": [
       "hr-policy",
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   },
   {
     "id": "tc-017",
@@ -217,7 +313,13 @@
     "notes": "Non-IT question. Should be declined before retrieval or web search.",
     "tags": [
       "off-topic"
-    ]
+    ],
+    "evaluation": {
+      "group": "scope",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-018",
@@ -228,7 +330,13 @@
     "notes": "Non-IT question. Must not trigger web search or retrieval.",
     "tags": [
       "off-topic"
-    ]
+    ],
+    "evaluation": {
+      "group": "scope",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-019",
@@ -246,7 +354,13 @@
     "expected_keywords": [
       "5",
       "30"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-020",
@@ -263,7 +377,13 @@
     ],
     "expected_keywords": [
       "30"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-021",
@@ -281,7 +401,13 @@
     ],
     "expected_keywords": [
       "180"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-022",
@@ -298,7 +424,13 @@
     ],
     "expected_keywords": [
       "14"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-023",
@@ -315,7 +447,13 @@
     ],
     "expected_keywords": [
       "12"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-024",
@@ -329,7 +467,13 @@
     "tags": [
       "password",
       "paraphrase"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-025",
@@ -342,7 +486,13 @@
     "notes": "Answer is no: only a reset is possible.",
     "tags": [
       "password"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-026",
@@ -357,7 +507,13 @@
       "password",
       "paraphrase",
       "typo"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-027",
@@ -370,7 +526,13 @@
     "notes": "Same policy applies to all accounts.",
     "tags": [
       "password"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-028",
@@ -384,7 +546,13 @@
     "tags": [
       "password",
       "security"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-029",
@@ -397,7 +565,13 @@
     "notes": "System Settings, Users & Groups.",
     "tags": [
       "password"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-030",
@@ -411,7 +585,13 @@
     "tags": [
       "password",
       "policy-trap"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-031",
@@ -425,7 +605,13 @@
     "tags": [
       "mfa",
       "policy-trap"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-032",
@@ -442,7 +628,13 @@
     ],
     "expected_keywords": [
       "8"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-033",
@@ -456,7 +648,13 @@
     "tags": [
       "mfa",
       "paraphrase"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-034",
@@ -473,7 +671,13 @@
     ],
     "expected_keywords": [
       "7"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-035",
@@ -487,7 +691,13 @@
     "tags": [
       "mfa",
       "paraphrase"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-036",
@@ -501,7 +711,13 @@
     "tags": [
       "mfa",
       "security"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-037",
@@ -515,7 +731,13 @@
     "tags": [
       "mfa",
       "security"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-038",
@@ -529,7 +751,13 @@
     "tags": [
       "mfa",
       "paraphrase"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-039",
@@ -542,7 +770,13 @@
     "notes": "Enter the number shown on screen to approve sign-in.",
     "tags": [
       "mfa"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-040",
@@ -555,7 +789,13 @@
     "notes": "SIM-swap risk.",
     "tags": [
       "mfa"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-041",
@@ -570,7 +810,13 @@
       "mfa",
       "security",
       "policy-trap"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-042",
@@ -585,7 +831,13 @@
       "mfa",
       "policy-trap",
       "security"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-043",
@@ -602,7 +854,13 @@
     ],
     "expected_keywords": [
       "443"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-044",
@@ -619,7 +877,13 @@
     ],
     "expected_keywords": [
       "30"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-045",
@@ -636,7 +900,13 @@
     ],
     "expected_keywords": [
       "12"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-046",
@@ -650,7 +920,13 @@
     "tags": [
       "vpn",
       "error-table"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-047",
@@ -664,7 +940,13 @@
     "tags": [
       "vpn",
       "error-table"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-048",
@@ -678,7 +960,13 @@
     "tags": [
       "vpn",
       "error-table"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-049",
@@ -692,7 +980,13 @@
     "tags": [
       "vpn",
       "paraphrase"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-050",
@@ -706,7 +1000,13 @@
     "tags": [
       "vpn",
       "policy-trap"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-051",
@@ -723,7 +1023,13 @@
     ],
     "expected_keywords": [
       "5"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-052",
@@ -736,7 +1042,13 @@
     "notes": "Asset tag, error message, OS, client version, network, steps tried.",
     "tags": [
       "vpn"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-053",
@@ -750,7 +1062,13 @@
     "tags": [
       "vpn",
       "paraphrase"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-054",
@@ -767,7 +1085,13 @@
       "software",
       "policy-trap",
       "multi-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-055",
@@ -784,7 +1108,13 @@
     ],
     "expected_keywords": [
       "4"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-056",
@@ -799,7 +1129,13 @@
       "vpn",
       "error-table",
       "security"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-057",
@@ -813,7 +1149,13 @@
     "tags": [
       "vpn",
       "paraphrase"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-058",
@@ -828,7 +1170,13 @@
       "vpn",
       "policy-trap",
       "security"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-059",
@@ -841,7 +1189,13 @@
     "notes": "Not permanently; temporary elevation is available.",
     "tags": [
       "software"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-060",
@@ -858,7 +1212,13 @@
     ],
     "expected_keywords": [
       "60"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-061",
@@ -875,7 +1235,13 @@
     ],
     "expected_keywords": [
       "10"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-062",
@@ -889,7 +1255,13 @@
     "tags": [
       "software",
       "policy-trap"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-063",
@@ -903,7 +1275,13 @@
     "tags": [
       "software",
       "paraphrase"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-064",
@@ -917,7 +1295,13 @@
     "tags": [
       "software",
       "paraphrase"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-065",
@@ -934,7 +1318,13 @@
     ],
     "expected_keywords": [
       "3"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-066",
@@ -947,7 +1337,13 @@
     "notes": "Manager, cost center owner, IT Security, End User Computing.",
     "tags": [
       "software"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-067",
@@ -960,7 +1356,13 @@
     "notes": "Check network, wait, retry, then open a ticket.",
     "tags": [
       "software"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-068",
@@ -979,7 +1381,13 @@
     ],
     "expected_keywords": [
       "30"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-069",
@@ -995,7 +1403,13 @@
       "mfa",
       "vpn",
       "multi-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-070",
@@ -1011,7 +1425,13 @@
       "vpn",
       "mfa",
       "multi-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-071",
@@ -1027,7 +1447,13 @@
       "password",
       "mfa",
       "multi-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-072",
@@ -1044,7 +1470,13 @@
       "vpn",
       "policy-trap",
       "multi-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-073",
@@ -1055,7 +1487,13 @@
     "notes": "Public documentation is appropriate.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-074",
@@ -1066,7 +1504,13 @@
     "notes": "Hardware and thermal troubleshooting.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-075",
@@ -1077,7 +1521,13 @@
     "notes": "General boot troubleshooting.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-076",
@@ -1088,7 +1538,13 @@
     "notes": "netstat-style question.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-077",
@@ -1099,7 +1555,13 @@
     "notes": "General application troubleshooting.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-078",
@@ -1110,7 +1572,13 @@
     "notes": "General printer troubleshooting.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-079",
@@ -1121,7 +1589,13 @@
     "notes": "General hardware troubleshooting.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-080",
@@ -1132,7 +1606,13 @@
     "notes": "General Windows diagnostics.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-081",
@@ -1143,7 +1623,13 @@
     "notes": "General maintenance.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-082",
@@ -1154,7 +1640,13 @@
     "notes": "Public vendor documentation exists for this error.",
     "tags": [
       "general-tech"
-    ]
+    ],
+    "evaluation": {
+      "group": "policy_citations",
+      "critical": false,
+      "require_citations": true,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-083",
@@ -1166,7 +1658,13 @@
     "tags": [
       "hr-policy",
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   },
   {
     "id": "tc-084",
@@ -1178,7 +1676,13 @@
     "tags": [
       "hr-policy",
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   },
   {
     "id": "tc-085",
@@ -1189,7 +1693,13 @@
     "notes": "Internal facilities. No document.",
     "tags": [
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   },
   {
     "id": "tc-086",
@@ -1201,7 +1711,13 @@
     "tags": [
       "hr-policy",
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   },
   {
     "id": "tc-087",
@@ -1213,7 +1729,13 @@
     "tags": [
       "security",
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   },
   {
     "id": "tc-088",
@@ -1225,7 +1747,13 @@
     "tags": [
       "borderline",
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   },
   {
     "id": "tc-089",
@@ -1236,7 +1764,13 @@
     "notes": "Org chart question. No document.",
     "tags": [
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   },
   {
     "id": "tc-090",
@@ -1248,7 +1782,13 @@
     "tags": [
       "security",
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   },
   {
     "id": "tc-091",
@@ -1260,7 +1800,13 @@
     "tags": [
       "hr-policy",
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   },
   {
     "id": "tc-092",
@@ -1271,7 +1817,13 @@
     "notes": "Entertainment.",
     "tags": [
       "off-topic"
-    ]
+    ],
+    "evaluation": {
+      "group": "scope",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-093",
@@ -1282,7 +1834,13 @@
     "notes": "Not an IT question.",
     "tags": [
       "off-topic"
-    ]
+    ],
+    "evaluation": {
+      "group": "scope",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-094",
@@ -1293,7 +1851,13 @@
     "notes": "Creative request.",
     "tags": [
       "off-topic"
-    ]
+    ],
+    "evaluation": {
+      "group": "scope",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-095",
@@ -1304,7 +1868,13 @@
     "notes": "General knowledge.",
     "tags": [
       "off-topic"
-    ]
+    ],
+    "evaluation": {
+      "group": "scope",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-096",
@@ -1315,7 +1885,13 @@
     "notes": "Translation request.",
     "tags": [
       "off-topic"
-    ]
+    ],
+    "evaluation": {
+      "group": "scope",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-097",
@@ -1328,7 +1904,13 @@
       "injection",
       "security",
       "off-topic"
-    ]
+    ],
+    "evaluation": {
+      "group": "scope",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": false
+    }
   },
   {
     "id": "tc-098",
@@ -1341,7 +1923,12 @@
       "injection",
       "security",
       "no-doc"
-    ]
+    ],
+    "evaluation": {
+      "group": "clarification",
+      "critical": false,
+      "require_citations": false,
+      "require_clarification": true
+    }
   }
 ]
-

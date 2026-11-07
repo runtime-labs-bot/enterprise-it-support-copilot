@@ -10,6 +10,7 @@ from app.services.web_search import search_web
 from app.agent.web_result_grader import grade_web_results
 from app.services.web_answer_generator import generate_web_answer
 import sqlite3
+import os
 from pathlib import Path
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langchain_core.messages import AIMessage
@@ -282,7 +283,11 @@ workflow.add_edge("save_response", END)
 workflow.add_edge("web_search", "grade_web")
 
 # Create folder for storing conversation checkpoints
-CHECKPOINT_DB_PATH = Path(__file__).resolve().parents[2] / "data/checkpoints/checkpoints.sqlite"
+_project_root = Path(__file__).resolve().parents[2]
+CHECKPOINT_DB_PATH = Path(os.getenv("COPILOT_CHECKPOINT_DB") or _project_root / "data/checkpoints/checkpoints.sqlite").expanduser()
+if not CHECKPOINT_DB_PATH.is_absolute():
+    CHECKPOINT_DB_PATH = _project_root / CHECKPOINT_DB_PATH
+CHECKPOINT_DB_PATH = CHECKPOINT_DB_PATH.resolve()
 CHECKPOINT_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # Create SQLite database connection

@@ -1,0 +1,226 @@
+[
+  {
+    "id": "wf-001",
+    "profile": "offline",
+    "group": "clarification",
+    "critical": false,
+    "test": "test_evaluation_behaviors.EvaluationBehaviorTests.test_unknown_policy_asks_for_context_without_inventing_sources",
+    "description": "Unknown policy explains missing context and asks a follow-up without sources"
+  },
+  {
+    "id": "wf-002",
+    "profile": "offline",
+    "group": "clarification",
+    "critical": false,
+    "test": "test_meridian.MeridianLoopTests.test_missing_details_asks_without_writing",
+    "description": "A scripted clarification response executes no ticket tool"
+  },
+  {
+    "id": "wf-003",
+    "profile": "offline",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_meridian.MeridianLoopTests.test_identical_write_is_not_repeated",
+    "description": "Identical create requests execute once within a single tool loop"
+  },
+  {
+    "id": "wf-004",
+    "profile": "offline",
+    "group": "closure_permissions",
+    "critical": true,
+    "test": "test_meridian.MeridianLoopTests.test_stale_or_invented_status_tool_is_blocked",
+    "description": "Claiming to be admin cannot invoke the removed general status tool"
+  },
+  {
+    "id": "wf-005",
+    "profile": "offline",
+    "group": "closure_permissions",
+    "critical": true,
+    "test": "test_meridian.MeridianLoopTests.test_employee_close_tool_is_allowed",
+    "description": "The owner closure tool is available to the runtime"
+  },
+  {
+    "id": "wf-006",
+    "profile": "offline",
+    "group": "failure_handling",
+    "critical": true,
+    "test": "test_meridian.MeridianLoopTests.test_write_failure_stops_loop",
+    "description": "Failed creation stops without retrying a write"
+  },
+  {
+    "id": "wf-007",
+    "profile": "offline",
+    "group": "failure_handling",
+    "critical": true,
+    "test": "test_meridian.MeridianLoopTests.test_failed_close_stops_without_retry",
+    "description": "Failed closure stops without retrying a write"
+  },
+  {
+    "id": "wf-008",
+    "profile": "offline",
+    "group": "failure_handling",
+    "critical": true,
+    "test": "test_meridian.MeridianLoopTests.test_model_failure_after_write_preserves_confirmation",
+    "description": "A summary failure preserves an already confirmed creation"
+  },
+  {
+    "id": "wf-009",
+    "profile": "offline",
+    "group": "failure_handling",
+    "critical": true,
+    "test": "test_meridian.MeridianLoopTests.test_model_failure_after_lookup_does_not_claim_write",
+    "description": "A model failure after a read cannot claim ticket creation"
+  },
+  {
+    "id": "wf-010",
+    "profile": "offline",
+    "group": "failure_handling",
+    "critical": true,
+    "test": "test_evaluation_behaviors.EvaluationBehaviorTests.test_mcp_connection_failure_hides_details_and_cannot_reuse_success",
+    "description": "MCP connection failures cannot reuse stale success or disclose exception details"
+  },
+  {
+    "id": "wf-011",
+    "profile": "offline",
+    "group": "ownership",
+    "critical": true,
+    "test": "test_meridian.MeridianRoutingTests.test_employee_key_is_runtime_only",
+    "description": "Identity credentials stay outside checkpointed agent state"
+  },
+  {
+    "id": "wf-012",
+    "profile": "offline",
+    "group": "closure_permissions",
+    "critical": true,
+    "test": "test_meridian.MeridianLoopTests.test_disallowed_and_malformed_calls_do_not_execute",
+    "description": "Malformed and unsupported tool calls execute no operation"
+  },
+  {
+    "id": "wf-013",
+    "profile": "backend",
+    "group": "ownership",
+    "critical": true,
+    "test": "test_auth.AuthenticationTests.test_ticket_ownership_and_admin_status_permissions",
+    "description": "Real JWTs enforce ticket, list, history, closure and admin status boundaries"
+  },
+  {
+    "id": "wf-014",
+    "profile": "backend",
+    "group": "ownership",
+    "critical": true,
+    "test": "test_auth.AuthenticationTests.test_employee_directory_and_device_permissions",
+    "description": "Employees cannot read other employee profiles or assigned devices"
+  },
+  {
+    "id": "wf-015",
+    "profile": "backend",
+    "group": "ticket_creation",
+    "critical": true,
+    "test": "test_evaluation_behaviors.EvaluationAccessTests.test_employee_cannot_spoof_ticket_owner",
+    "description": "Spoofed ticket reporter is rejected with no inserted ticket"
+  },
+  {
+    "id": "wf-016",
+    "profile": "backend",
+    "group": "closure_permissions",
+    "critical": true,
+    "test": "test_evaluation_behaviors.EvaluationAccessTests.test_jwt_owner_closes_all_active_states_once",
+    "description": "JWT owners close open, in-progress and resolved tickets; repeat closure is idempotent"
+  },
+  {
+    "id": "wf-017",
+    "profile": "backend",
+    "group": "closure_permissions",
+    "critical": true,
+    "test": "test_employee_closure.EmployeeClosureTests.test_employee_cannot_resolve_reopen_reassign_or_delete",
+    "description": "Employees cannot resolve, reopen, reassign or delete tickets"
+  },
+  {
+    "id": "wf-018",
+    "profile": "backend",
+    "group": "ownership",
+    "critical": true,
+    "test": "test_auth.AuthenticationTests.test_login_role_selection_cannot_grant_permissions",
+    "description": "Login role selection does not grant administrator privileges"
+  },
+  {
+    "id": "wf-019",
+    "profile": "backend",
+    "group": "failure_handling",
+    "critical": true,
+    "test": "test_auth.AuthenticationTests.test_expired_session_and_validation_do_not_leak_password",
+    "description": "Expired sessions fail without exposing validation input"
+  },
+  {
+    "id": "wf-020",
+    "profile": "backend",
+    "group": "failure_handling",
+    "critical": true,
+    "test": "test_auth.AuthenticationTests.test_logout_revokes_access_and_refresh",
+    "description": "Logout rejects access and refresh tokens"
+  },
+  {
+    "id": "wf-021",
+    "profile": "backend",
+    "group": "failure_handling",
+    "critical": true,
+    "test": "test_evaluation_behaviors.EvaluationAccessTests.test_database_failure_is_service_unavailable_without_connection_details",
+    "description": "Injected SQLAlchemy failure yields sanitized database health 503"
+  },
+  {
+    "id": "wf-022",
+    "profile": "backend",
+    "group": "failure_handling",
+    "critical": true,
+    "test": "test_evaluation_behaviors.EvaluationMcpFailureTests.test_backend_database_unavailability_cannot_confirm_a_write",
+    "description": "Backend 503 becomes a sanitized MCP failure with no automatic write retry"
+  },
+  {
+    "id": "wf-023",
+    "profile": "offline",
+    "group": "closure_permissions",
+    "critical": true,
+    "test": "test_admin_chat.AdminActionTests.test_no_mutation_before_confirmation_and_confirmation_executes_once",
+    "description": "Admin changes require confirmation and execute once"
+  },
+  {
+    "id": "wf-024",
+    "profile": "offline",
+    "group": "failure_handling",
+    "critical": true,
+    "test": "test_admin_chat.AdminActionTests.test_uncertain_write_cannot_be_blindly_retried",
+    "description": "Uncertain admin writes cannot be blindly retried"
+  },
+  {
+    "id": "wf-025",
+    "profile": "offline",
+    "group": "ownership",
+    "critical": true,
+    "test": "test_browser_login.BrowserVaultTests.test_revocation_expiry_and_outage_behavior",
+    "description": "Revoked/expired browser sessions fail; temporary outages preserve retry"
+  },
+  {
+    "id": "wf-026",
+    "profile": "backend",
+    "group": "ownership",
+    "critical": true,
+    "test": "test_ticket_review.TicketReviewTests.test_owner_edits_title_and_description_before_review",
+    "description": "Only the owner may edit an open unreviewed ticket"
+  },
+  {
+    "id": "wf-027",
+    "profile": "backend",
+    "group": "ownership",
+    "critical": true,
+    "test": "test_ticket_review.TicketReviewTests.test_queue_does_not_review_but_admin_open_locks_permanently",
+    "description": "Queue browsing does not lock; admin opening locks details and closure remains allowed"
+  },
+  {
+    "id": "wf-028",
+    "profile": "backend",
+    "group": "ownership",
+    "critical": true,
+    "test": "test_ticket_review.TicketReviewTests.test_stale_employee_instance_cannot_bypass_new_review",
+    "description": "A stale employee ORM instance cannot bypass a new admin review"
+  }
+]
