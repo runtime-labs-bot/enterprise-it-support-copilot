@@ -47,7 +47,9 @@ cd /d C:\ITSupportCopilot
 docker compose --env-file .env.docker up --build -d --wait
 ```
 
-Only the local development database was migrated during implementation. Running
-containers must be rebuilt to use the new behavior. PostgreSQL tests cover
+Both the local development database and the rebuilt Docker database are now at
+migration `0009_ticket_idempotency`. PostgreSQL tests cover
 replay across logins, changed payloads, ownership, rollback, deletion, reassignment,
 invalid keys, independent concurrent sessions, and MCP header propagation.
+`scripts/verify_docker_safeguards.py` additionally verified the running Docker
+HTTP endpoint with disposable accounts and tickets, then removed the fixtures.

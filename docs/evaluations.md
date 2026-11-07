@@ -212,10 +212,25 @@ hosted Actions run.
 Implementation verification passed **106 Copilot unit tests**, **96 backend
 tests**, and the expanded **42/42 runtime/backend scorecard**. The new runtime
 guard was verified with mocked model responses; provider limits prevented its
-live recheck. The changed code and workflow are local until committed and pushed;
-the Docker app also requires a rebuild to pick up runtime changes.
+live recheck. The implementation was pushed as `f8bc48d`, and the
+[hosted offline workflow passed](https://github.com/rushberry02/enterprise-it-support-copilot/actions/runs/42392175730).
+The live job was skipped. Docker was rebuilt and all four services are healthy;
+the deployed database is at migration `0009_ticket_idempotency`.
 
 See the [offline failure review](evaluation-failure-review.md) for the evidence
 behind all three failures and the quota/reset limitation. Live evaluation is
 currently stopped; no automatic resume is scheduled. Resume explicitly in batches
 of 5–10 after confirming provider availability.
+
+Run the deployed verification without any model calls:
+
+```bat
+python scripts\verify_docker_safeguards.py
+```
+
+This checks actual concurrent HTTP requests against Docker, repeated-request
+identity, changed-payload conflicts, one creation event, and employee isolation.
+Generated accounts, tickets and request reservations are removed afterward. It
+then runs 10 internal/web citation checks inside the rebuilt Copilot container
+with mocked model responses and provider networking blocked. All checks passed;
+sanitized evidence is saved locally at `evals/reports/docker-safeguards.json`.
