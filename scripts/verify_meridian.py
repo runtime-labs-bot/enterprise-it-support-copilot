@@ -84,7 +84,7 @@ async def verify_tools(employee_id, device_id, ticket_ids, employee_key, admin_c
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--live-model", action="store_true", help="Also invoke the actual Groq-backed LangGraph with a read-only fixture query")
+    parser.add_argument("--live-model", action="store_true", help="Also invoke the configured-provider LangGraph with a read-only fixture query")
     args = parser.parse_args()
     load_dotenv(ROOT / ".env")
     backend, backend_python = meridian_installation()
@@ -212,7 +212,7 @@ def main():
                     assert {"get_employee", "list_employees"} & set(result.get("meridian_tools", [])), "Live model did not retrieve employee information"
                     assert "list_devices" in result.get("meridian_tools", []), "Live model did not retrieve devices"
                     assert not ({"create_ticket", "change_ticket_status"} & set(result["meridian_tools"]))
-                    print("PASS: actual Groq -> existing LangGraph -> MCP -> REST -> PostgreSQL read flow")
+                    print("PASS: configured LLM -> existing LangGraph -> MCP -> REST -> PostgreSQL read flow")
                     # Leave room in the local account's model token/minute quota.
                     time.sleep(15)
                     thread_id = f"mcp-live-writes-{token}"

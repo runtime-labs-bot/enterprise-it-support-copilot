@@ -1,20 +1,10 @@
-import os
-from dotenv import load_dotenv
-from groq import Groq
-from app.services.citations import validate_generated_answer, unsourced_answer
+from app.services.stage_diagnostics import stage
+from app.services.llm_provider import LLMClient
+from app.services.citations import unsourced_answer
+from app.services.generation_diagnostics import assess_generation
+from app.services.cited_output import output_instructions
 
-load_dotenv()
-
-api_key = os.getenv("GROQ_API_KEY")
-model_name = os.getenv(
-    "GROQ_MODEL",
-    "openai/gpt-oss-20b"
-)
-
-if not api_key:
-    raise ValueError("GROQ_API_KEY is missing from .env")
-
-client = Groq(api_key=api_key)
+client = LLMClient()
 
 def generate_answer(question:str,retrieved_chunks:list[dict]):
 
@@ -31,7 +21,7 @@ def generate_answer(question:str,retrieved_chunks:list[dict]):
 
     #preapre context from retrieved chunks
 
-    context_parts = [] #context_parts stores the document content that will be sent to Groq.
+    context_parts = [] #context_parts stores the document content that will be sent to the selected model.
     sources = [] #sources stores source metadata that we can return alongside the answer.
 
     for  i, chunk in enumerate(retrieved_chunks,start=1):
@@ -82,8 +72,8 @@ def generate_answer(question:str,retrieved_chunks:list[dict]):
     5. Never invent company policies, procedures, contact details,
    technical instructions, or security requirements.
 
-    6. Cite supporting information using the source labels provided,
-   such as [Source 1] or [Source 2].
+    6. Attribute supporting information to the numeric source IDs supplied
+   in the context, using the output contract below.
 
     7. Do not cite a source unless it supports the statement.
 
@@ -96,6 +86,7 @@ def generate_answer(question:str,retrieved_chunks:list[dict]):
 
     10. Use clear, practical language suitable for an employee.
 """
+    system_prompt += output_instructions(len(sources))
 
 
     user_prompt= f"""
@@ -104,39 +95,32 @@ def generate_answer(question:str,retrieved_chunks:list[dict]):
     Retrieved Knowledge-base Context: {context}
 
     Generate an answer based on the provided context.
-    Include source references in your answer.
+    Return the JSON claims object with explicit supporting source_ids.
     """
-    print("\nDEBUG: User prompt being sent to Groq:")
-    print(user_prompt)
 
-    print("\nDEBUG: Context being sent to Groq:")
-    print(context)
-
-    print("\nDEBUG: System prompt:")
-    print(system_prompt)
-
-    response = client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        temperature=0.2,
-        max_tokens=800
-    )
+    with stage('answer_generation', component='internal', llm=True):
+        response = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.2,
+            max_tokens=800,
+            response_format={'type':'json_object'}
+        )
 
     print("\nDEBUG: Model:", response.model)
     print("DEBUG: Finish reason:", response.choices[0].finish_reason)
     print("DEBUG: Response usage:", response.usage)
 
-    answer = response.choices[0].message.content
-
-    if not validate_generated_answer(answer, len(sources), response.choices[0].finish_reason):
-        return unsourced_answer()
+    answer, diagnostics = assess_generation(response, context, len(sources), 'internal', requested_max_tokens=800)
+    if not diagnostics['validation']['accepted']:
+        return {**unsourced_answer(), 'generation_diagnostics': diagnostics}
 
     return {
         "answer": answer,
-        "sources": sources
+        "sources": sources,
+        "generation_diagnostics": diagnostics,
     }
 
 

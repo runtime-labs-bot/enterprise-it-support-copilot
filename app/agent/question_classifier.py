@@ -1,18 +1,8 @@
-import os
 import json
 
-from dotenv import load_dotenv
-from groq import Groq
+from app.services.llm_provider import LLMClient
 
-load_dotenv()
-
-api_key = os.getenv("GROQ_API_KEY")
-model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
-
-if not api_key:
-    raise ValueError("GROQ_API_KEY is missing from .env")
-
-client = Groq(api_key=api_key)
+client = LLMClient()
 
 def classify_question(question:str)->dict:
     if not question.strip():
@@ -67,7 +57,6 @@ Classify this question.
 """
 
     response = client.chat.completions.create(
-        model=model_name,
         messages=[
             {
                 "role":"system",

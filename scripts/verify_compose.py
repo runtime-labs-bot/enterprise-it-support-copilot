@@ -1,6 +1,6 @@
 """Verify the running Compose stack with temporary records and real stdio MCP.
 
-Use --live-model to also check Groq, /ask, and saved history across login sessions.
+Use --live-model to also check the selected LLM, /ask, and saved history across login sessions.
 Credentials go to the MCP subprocess through stdin, never CLI arguments or logs.
 """
 import argparse

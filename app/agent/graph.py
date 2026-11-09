@@ -1,4 +1,5 @@
 from langgraph.graph import StateGraph, START, END
+from app.services.stage_diagnostics import stage
 
 from app.agent.state import AgentState
 from app.agent.fallback import insufficient_context_response
@@ -52,20 +53,21 @@ def get_contextual_question(state: AgentState) -> str:
     )
 
 def retrieve_documents(state: AgentState) -> dict:
-    from app.retrieval.search_knowledge import search_knowledge
+    with stage('retrieval', provider='pinecone', component='knowledge_base'):
+        from app.retrieval.search_knowledge import search_knowledge
 
-    contextual_question = get_contextual_question(state)
+        contextual_question = get_contextual_question(state)
 
-    additional_queries = [
-        "What company policy applies to the issue described?",
-        "What troubleshooting steps or approved procedures apply?"
-    ]
+        additional_queries = [
+            "What company policy applies to the issue described?",
+            "What troubleshooting steps or approved procedures apply?"
+        ]
 
-    retrieved_chunks = search_knowledge(
-        contextual_question,
-        top_k=5,
-        additional_queries=additional_queries
-    )
+        retrieved_chunks = search_knowledge(
+            contextual_question,
+            top_k=5,
+            additional_queries=additional_queries
+        )
 
     print("Total retrieved chunks:", len(retrieved_chunks))
 
@@ -79,10 +81,11 @@ def retrieve_documents(state: AgentState) -> dict:
 def grade_documents(state:AgentState)->dict:
     question = state.get("contextual_question", state["question"])
     retrieved_chunks = state["retrieved_chunks"]
-    grading_result = grade_retrieval(
-        question,
-        retrieved_chunks
-    )
+    with stage('relevance_grading', component='internal', llm=True):
+        grading_result = grade_retrieval(
+            question,
+            retrieved_chunks
+        )
 
     return {
         "grading_result":grading_result
@@ -91,7 +94,8 @@ def grade_documents(state:AgentState)->dict:
 def classify_question_node(state:AgentState):
     print("Executing question classification node...")
     question = state.get("contextual_question", state["question"])
-    classification=classify_question(question)
+    with stage('classification', component='question_routing', llm=True):
+        classification=classify_question(question)
     print("Question Category:",classification["category"])
     print("Classification reason:", classification["reason"])
 
@@ -108,7 +112,8 @@ def web_search_node(state: AgentState):
     # Tavily allows a maximum query length of 1500 characters
     question = question[:1400]
 
-    web_results = search_web(question, max_results=5)
+    with stage('retrieval', provider='tavily', component='web'):
+        web_results = search_web(question, max_results=5)
 
     print("Number of web results:", len(web_results))
 
@@ -120,10 +125,11 @@ def grade_web_results_node(state: AgentState):
     question = state.get("contextual_question", state["question"])
     web_results = state.get("web_results", [])
 
-    grading_result = grade_web_results(
-        question,
-        web_results
-    )
+    with stage('relevance_grading', component='web', llm=True):
+        grading_result = grade_web_results(
+            question,
+            web_results
+        )
 
     print("Web results relevant:", grading_result["relevant"])
     print("Grading reason:", grading_result["reason"])
@@ -142,7 +148,8 @@ def web_generate_node(state: AgentState):
     return {
         "answer": result["answer"],
         "sources": result["sources"],
-        "status": "answered_web" if result.get('grounded', True) else "insufficient_context"
+        "status": "answered_web" if result.get('grounded', True) else "insufficient_context",
+        "generation_diagnostics": result.get('generation_diagnostics', {}),
     }
 
 def route_after_web_grading(state:AgentState):
@@ -192,7 +199,8 @@ def generate_response(state: AgentState) -> dict:
     return {
         "answer": result["answer"],
         "sources": result["sources"],
-        "status": "answered" if result.get('grounded', True) else "insufficient_context"
+        "status": "answered" if result.get('grounded', True) else "insufficient_context",
+        "generation_diagnostics": result.get('generation_diagnostics', {}),
     }
 
 #Node4 Handle insufficient internal knowledge

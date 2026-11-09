@@ -8,6 +8,19 @@ from scripts.init_docker_env import initialize
 
 
 class DockerEnvironmentTests(unittest.TestCase):
+    def test_gemini_configuration_is_copied_without_requiring_groq(self):
+        with TemporaryDirectory() as directory:
+            root=Path(directory)
+            (root/'.env').write_text('LLM_PROVIDER=gemini\nLLM_MODEL=gemini-fixture\nGEMINI_API_KEY=private-gemini-fixture\nPINECONE_API_KEY=fixture\nTAVILY_API_KEY=fixture\n')
+            output=io.StringIO()
+            with redirect_stdout(output):
+                initialize(root)
+            values=dotenv_values(root/'.env.docker')
+            self.assertEqual(values['LLM_PROVIDER'],'gemini')
+            self.assertEqual(values['GEMINI_API_KEY'],'private-gemini-fixture')
+            self.assertNotIn('Set these',output.getvalue())
+            self.assertNotIn('private-gemini-fixture',output.getvalue())
+
     def test_isolates_credentials_preserves_literals_and_is_idempotent(self):
         with TemporaryDirectory() as directory:
             root = Path(directory)

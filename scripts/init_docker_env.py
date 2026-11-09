@@ -5,7 +5,8 @@ from dotenv import dotenv_values, set_key
 import base64
 
 ROOT = Path(__file__).resolve().parents[1]
-PROVIDERS = ("GROQ_API_KEY", "GROQ_MODEL", "PINECONE_API_KEY", "PINECONE_INDEX_NAME", "TAVILY_API_KEY")
+PROVIDERS = ("GROQ_API_KEY", "GROQ_MODEL", "PINECONE_API_KEY", "PINECONE_INDEX_NAME", "TAVILY_API_KEY",
+             "LLM_PROVIDER", "LLM_MODEL", "LLM_BASE_URL", "LLM_TOKEN_PARAMETER", "LLM_TEMPERATURE_MODE", "LLM_TIMEOUT_SECONDS", "OPENAI_API_KEY", "GEMINI_API_KEY", "OLLAMA_API_KEY", "LLM_API_KEY")
 
 
 def initialize(root=ROOT):
@@ -37,7 +38,9 @@ def initialize(root=ROOT):
         stream.write("# Private Docker configuration. Do not commit.\n")
         stream.writelines(f"{key}='{value}'\n" for key, value in values.items())
     print("Created .env.docker with separate Docker credentials. No secrets displayed.")
-    missing = [key for key in ("GROQ_API_KEY", "PINECONE_API_KEY", "TAVILY_API_KEY") if not values[key]]
+    provider = values.get('LLM_PROVIDER') or 'groq'
+    key_name = {'groq':'GROQ_API_KEY','openai':'OPENAI_API_KEY','gemini':'GEMINI_API_KEY','compatible':'LLM_API_KEY'}.get(provider)
+    missing = [key for key in (key_name, "PINECONE_API_KEY", "TAVILY_API_KEY") if key and not values.get(key)]
     if missing:
         print("Set these in .env.docker before starting: " + ", ".join(missing))
 

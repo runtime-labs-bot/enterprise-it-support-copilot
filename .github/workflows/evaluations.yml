@@ -31,6 +31,11 @@ jobs:
       - run: python -m unittest discover -s tests -p test_scorecard.py -q
       - run: python -m unittest discover -s tests -p test_knowledge_batches.py -q
       - run: python -m unittest discover -s tests -p test_answer_citations.py -q
+      - run: python -m unittest discover -s tests -p test_cited_output.py -q
+      - run: python -m unittest discover -s tests -p test_tc032_trace.py -q
+      - run: python -m unittest discover -s tests -p test_llm_provider.py -q
+      - run: python -m unittest discover -s tests -p test_stage_diagnostics.py -q
+      - run: python -m unittest discover -s tests -p test_rate_limits.py -q
       - run: python -m app.evaluation.scorecard --profile offline --output evals/reports/ci-offline
       - uses: actions/upload-artifact@v4
         if: always()
@@ -45,6 +50,15 @@ jobs:
     env:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       GROQ_MODEL: ${{ vars.GROQ_MODEL || 'openai/gpt-oss-20b' }}
+      LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'groq' }}
+      LLM_MODEL: ${{ vars.LLM_MODEL }}
+      LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
+      LLM_TOKEN_PARAMETER: ${{ vars.LLM_TOKEN_PARAMETER }}
+      LLM_TEMPERATURE_MODE: ${{ vars.LLM_TEMPERATURE_MODE || 'auto' }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OLLAMA_API_KEY: ${{ secrets.OLLAMA_API_KEY }}
+      LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
       PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
       PINECONE_INDEX_NAME: ${{ vars.PINECONE_INDEX_NAME }}
       TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
@@ -58,7 +72,7 @@ jobs:
       - run: python -m pip install -r requirements.txt
       - name: Validate live configuration
         run: |
-          python -c "import os; assert 1 <= int(os.environ['CASE_LIMIT']) <= 98; assert all(os.environ.get(k) for k in ('GROQ_API_KEY','PINECONE_API_KEY','PINECONE_INDEX_NAME','TAVILY_API_KEY')), 'Configure provider secrets and index variable first'"
+          python -c "import os; from app.services.llm_provider import get_config; get_config(); assert 1 <= int(os.environ['CASE_LIMIT']) <= 98; assert all(os.environ.get(k) for k in ('PINECONE_API_KEY','PINECONE_INDEX_NAME','TAVILY_API_KEY')), 'Configure provider secrets and index variable first'"
       - run: python -m app.evaluation.scorecard --profile knowledge --limit "$CASE_LIMIT" --delay 10 --output evals/reports/ci-live
       - uses: actions/upload-artifact@v4
         if: always()

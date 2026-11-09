@@ -256,22 +256,19 @@ def _limit_result(trace):
 
 
 async def _run(question, context, employee_api_key=None, operator_role=None, request_id=None):
-    from groq import AsyncGroq
+    from app.services.llm_provider import AsyncLLMClient, tool_call_for_history
 
     # Retrying a model HTTP request never re-executes an MCP tool. Tool writes
     # themselves are not retried; identical creates are cached within a turn.
-    async with AsyncGroq(api_key=os.environ["GROQ_API_KEY"], max_retries=2, timeout=30) as client:
+    async with AsyncLLMClient() as client:
         async def complete(messages, definitions):
             response = await client.chat.completions.create(
-                model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
                 messages=messages, tools=definitions, tool_choice="auto",
                 temperature=0, max_tokens=1200,
             )
             result = response.choices[0].message
             return {"content": result.content, "tool_calls": [
-                {"id": call.id, "type": "function", "function": {
-                    "name": call.function.name, "arguments": call.function.arguments,
-                }} for call in result.tool_calls or []
+                tool_call_for_history(call) for call in result.tool_calls or []
             ]}
         async with connect_meridian(employee_api_key) as session:
             return await run_tool_loop(session, complete, question, context, operator_role=operator_role, request_id=request_id)

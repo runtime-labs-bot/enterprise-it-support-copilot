@@ -80,12 +80,21 @@ def run_checks(cases, profile, timeout=180):
         return [row(case, {"status": "error", "error_type": type(error).__name__}) for case in cases]
 
 
-def run_knowledge(cases, timeout=120, delay=0):
+def transport_failure(result):
+    return result.get('status') == 'error' and (result.get('provider_error_kind') == 'transport'
+        or bool(result.get('transport_error')) or result.get('error_type') in {'TimeoutExpired','PineconeConnectionError'})
+
+
+def run_knowledge(cases, timeout=120, delay=0, transport_failure_limit=0, on_result=None, stop_on_error=False):
     results = []
     limited = False
+    transport_errors = 0
+    stopped = None
     for case in cases:
-        if limited:
-            results.append(row(case, {"status": "skipped", "reason": "Provider rate/quota limit stopped live evaluation"}))
+        if stopped:
+            results.append(row(case, {"status": "skipped", "reason": stopped}))
+            if on_result:
+                on_result(results)
             continue
         started = time.monotonic()
         try:
@@ -101,7 +110,16 @@ def run_knowledge(cases, timeout=120, delay=0):
         results.append(row(case, result))
         print(f"{case['id']}: {result['status']}", flush=True)
         limited = bool(result.get("provider_limited"))
-        if delay and case is not cases[-1] and not limited:
+        transport_errors += int(transport_failure(result))
+        if limited:
+            stopped = 'Provider rate/quota limit stopped live evaluation'
+        elif stop_on_error and result.get('status') == 'error':
+            stopped = 'Error stopped batch for explicit provider fallback'
+        elif transport_failure_limit and transport_errors >= transport_failure_limit:
+            stopped = 'Repeated transport failures stopped live evaluation'
+        if on_result:
+            on_result(results)
+        if delay and case is not cases[-1] and not stopped:
             time.sleep(delay)
     return results
 
@@ -153,7 +171,7 @@ def merge_reports(paths, cases):
     return merged
 
 
-def finish(results, args, baseline):
+def finish(results, args, baseline, quiet=False):
     from dotenv import dotenv_values
     data = report(results, args.fail_under, baseline)
     data["configuration"] = {"profile": "merged" if args.merge else args.profile, "fail_under": args.fail_under}
@@ -164,16 +182,26 @@ def finish(results, args, baseline):
         dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, stderr=subprocess.DEVNULL, text=True).strip())
     except (OSError, subprocess.CalledProcessError):
         revision, dirty = "unknown", None
-    model = os.getenv("GROQ_MODEL") or dotenv_values(ROOT / ".env", interpolate=False).get("GROQ_MODEL") or "openai/gpt-oss-20b"
-    data["provenance"] = {"git_revision": revision, "working_tree_dirty": dirty, "python": sys.version.split()[0], "model": model}
+    from app.services.llm_provider import get_config
+    try:
+        selection = get_config(require_key=False)
+        model, provider = selection.model, selection.provider
+    except ValueError:
+        # A bad live configuration must not destroy the report of those errors;
+        # offline checks do not require a configured live model at all.
+        model, provider = 'unconfigured', 'unconfigured'
+    data["provenance"] = {"git_revision": revision, "working_tree_dirty": dirty, "python": sys.version.split()[0], "model": model, "provider": provider}
     if args.merge:
         data["merged_reports"] = [str(path) for path in args.merge]
         data["source_runs"] = [{key: json.loads(path.read_text(encoding="utf-8")).get(key) for key in ("created_at", "profiles_run", "provenance")} for path in args.merge]
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.with_suffix(".json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    temporary = args.output.with_suffix('.json.tmp')
+    temporary.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(args.output.with_suffix('.json'))
     args.output.with_suffix(".md").write_text(markdown(data), encoding="utf-8")
-    print(json.dumps(data["summary"], indent=2))
-    print("Reports: " + str(args.output.with_suffix(".json")) + " and .md")
+    if not quiet:
+        print(json.dumps(data["summary"], indent=2))
+        print("Reports: " + str(args.output.with_suffix(".json")) + " and .md")
     return 0 if data["summary"]["gate_passed"] else 1
 
 
@@ -203,11 +231,14 @@ def main(default_profile="offline"):
     parser.add_argument("--fail-under", type=float, default=1.0)
     parser.add_argument("--timeout", type=int, default=120, help="Timeout per live case / workflow batch in seconds")
     parser.add_argument("--delay", type=float, default=0, help="Seconds between live cases, at most 60")
+    parser.add_argument('--transport-failure-limit', type=int, default=0, help='Stop after this many transport errors; 0 disables')
+    parser.add_argument('--stop-on-error', action='store_true', help='Checkpoint and stop this batch on the first error for explicit provider fallback')
+    parser.add_argument('--rate-limit-report', action='append', type=Path, default=[], help='Additional saved reports whose provider reset windows must be respected')
     parser.add_argument("--output", type=Path, default=ROOT / "evals/reports/latest")
     parser.add_argument("--baseline", type=Path)
     parser.add_argument("--merge", nargs="+", type=Path, help="Combine distinct existing report outcomes without rerunning checks")
     args = parser.parse_args()
-    if args.limit < 1 or args.timeout < 1 or not 0 <= args.fail_under <= 1 or not 0 <= args.delay <= 60:
+    if args.limit < 1 or args.timeout < 1 or args.transport_failure_limit < 0 or not 0 <= args.fail_under <= 1 or not 0 <= args.delay <= 60:
         parser.error("Require limit/timeout > 0, fail-under in [0,1], and delay in [0,60]")
     if args.merge and (args.ids or args.tag):
         parser.error("Merge combines complete report outcomes; ID/tag filters apply only to new runs")
@@ -247,7 +278,23 @@ def main(default_profile="offline"):
         if subset:
             print(f"Running {profile}: {len(subset)} checks", flush=True)
             results.extend(run_checks(subset, profile, args.timeout))
-    results.extend(run_knowledge([case for case in selected if case["profile"] == "knowledge"], args.timeout, args.delay))
+    live_cases = [case for case in selected if case['profile'] == 'knowledge']
+    if live_cases:
+        from app.evaluation.rate_limits import active_cooldown
+        from app.services.llm_provider import get_config
+        try:
+            provider = get_config(require_key=False).provider
+        except ValueError:
+            provider = None
+        cooldown = active_cooldown([*args.rate_limit_report, *args.output.parent.glob('batch-*.json')], provider)
+        if cooldown:
+            results.extend(row(case, {'status':'skipped','provider_limited':True,
+                'reason':'Provider reset window is still active; no live call made','retry_window':cooldown}) for case in live_cases)
+            return finish(results, args, baseline)
+    def checkpoint(partial):
+        pending = [row(case, {'status':'skipped', 'reason':'Not yet evaluated in this batch'}) for case in live_cases[len(partial):]]
+        finish([*results, *partial, *pending], args, baseline, quiet=True)
+    results.extend(run_knowledge(live_cases, args.timeout, args.delay, args.transport_failure_limit, checkpoint, args.stop_on_error))
     return finish(results, args, baseline)
 
 

@@ -1,20 +1,9 @@
-import os
-from dotenv import load_dotenv
-from groq import Groq
+from app.services.llm_provider import LLMClient
 
-load_dotenv()
+client = LLMClient()
 
-api_key= os.getenv("GROQ_API_KEY")
-model = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
-
-if not api_key:
-    raise ValueError("GROQ_API_KEY is missing from .env")
-
-client = Groq(api_key=api_key)
-
-def ask_groq(question:str)->str:
+def ask_llm(question:str)->str:
     response = client.chat.completions.create(
-        model=model,
         messages=[
             {
                 "role":"system",
@@ -46,7 +35,7 @@ if __name__ == "__main__":
     question = "What should I check if my company VPN will not connect?"
 
     try:
-        print(ask_groq(question))
+        print(ask_llm(question))
     except Exception as exc:
         print(f"Request failed: {type(exc).__name__}: {exc}")
 

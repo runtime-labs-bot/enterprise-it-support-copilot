@@ -61,7 +61,17 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      GROQ_API_KEY: ${GROQ_API_KEY:?Set GROQ_API_KEY in .env.docker}
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_TOKEN_PARAMETER: ${LLM_TOKEN_PARAMETER:-}
+      LLM_TEMPERATURE_MODE: ${LLM_TEMPERATURE_MODE:-auto}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-30}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
       PINECONE_API_KEY: ${PINECONE_API_KEY:?Set PINECONE_API_KEY in .env.docker}
       PINECONE_INDEX_NAME: ${PINECONE_INDEX_NAME:-it-support-knowledge}

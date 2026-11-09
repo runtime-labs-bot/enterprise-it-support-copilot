@@ -180,10 +180,15 @@ expectations are rejected. `coverage.json`/`.md` includes all 98 cases in its
 denominator, selects the latest attempt per case, and retains each source report
 and its provenance. This is a coverage view, not a new single-version live run.
 
-Two batches reached provider limits. Including the earlier smoke run, **17/98
+The first two batches reached provider limits. At that point, including the earlier smoke run, **17/98
 cases have completed answers: 14 passed and 3 failed**. The latest outcomes also
 include one rate-limit error and 80 skips (77 never requested). **81 cases remain
-unfinished**, so the full-catalog gate fails. Original batch reports are retained.
+unfinished**, so the full-catalog gate failed. Original batch reports are retained.
+
+A subsequent resume completed another 27 cases before a rate limit at `tc-045`.
+The preserved latest live snapshot is **44/98 completed: 36 passed, eight failed**,
+with one rate-limit error, 53 skips and **54 unfinished**. The `tc-032` debugging
+baseline preserves this snapshot; no live rerun has been performed during debugging.
 
 | Case | Observed failure | Follow-up |
 | --- | --- | --- |
@@ -234,3 +239,71 @@ Generated accounts, tickets and request reservations are removed afterward. It
 then runs 10 internal/web citation checks inside the rebuilt Copilot container
 with mocked model responses and provider networking blocked. All checks passed;
 sanitized evidence is saved locally at `evals/reports/docker-safeguards.json`.
+
+The subsequent [tc-032 investigation](tc032-investigation.md) preserves the
+44-completed-case baseline and adds safe per-stage diagnostics plus an offline
+regression. It identifies the guard boundary but does not claim to recover the
+discarded historical candidate or prove an answer-quality fix. Live evaluation
+remains stopped; a one-case baseline-comparison command is provided in that guide.
+
+For the later Gemini retries, see the [offline timeout diagnosis](gemini-timeout-diagnosis.md).
+It distinguishes the provider read timer from the whole-case deadline, documents
+what the saved attempts cannot prove, and reproduces the error mapping with
+mocked transport and socket connections blocked. No live request was made for
+that investigation.
+
+The subsequent [stage timeout diagnostics](stage-diagnostics.md) instrument
+retrieval, relevance grading, answer generation and citation validation. All 137
+root offline tests passed. One minimal Gemini readiness request then hit a read
+timeout after 97.73 seconds with zero retries, so `tc-045` was not retried.
+Historical reports and persistent timeout settings remain unchanged.
+
+The [alternative-provider benchmark resume](provider-benchmark-resume.md)
+subsequently verified Groq readiness and a complete passing live case (`tc-046`).
+The five-case resumed batch stopped on a 429 with 1 pass, 2 errors and 2 skips.
+Historical reports, expectation hashes and source snapshots were preserved;
+combined coverage is mixed-provider completion tracking, not a provider comparison.
+
+The [continued five-case run](expanded-evaluation-progress.md) reached **64/98
+completed** using Gemini 3.5 Flash-Lite before an HTTP 503 stopped further batches.
+It preserves all eight original failures and adds one document-citation-coverage
+failure. Per-case checkpoints and explicit provider/model labels are retained;
+34 cases remain unfinished before the requested full failure analysis.
+
+A subsequent explicit resume passed readiness and ran batches 004–005. Current
+coverage is **73/98 completed**, with **25 unfinished** after another Gemini HTTP
+503. There are 63 passes and 10 preserved quality failures; the latest added
+failure is `tc-072` (expected-document citation coverage). Historical checksums
+and all previously completed outcomes verified unchanged.
+
+After the user's explicit direct-fallback instruction, batch 006 stopped on a
+Gemini HTTP 503 and batch 007 retried unfinished cases on Groq. Groq then returned
+HTTP 429 on `tc-076`, stopping all calls. Current coverage is **75/98 completed**,
+with 63 passes, 12 preserved failures and 23 unfinished cases. Full evidence and
+the new first-error checkpoint mode are described in the continued-run guide.
+
+Future invocations also [respect the longest saved provider reset window](rate-limit-cooldowns.md),
+accounting for elapsed time and keeping provider cooldowns separate. An active
+window prevents readiness and evaluation calls; it does not trigger an automatic
+retry. This change passed 152 offline tests and made no live requests.
+
+The subsequent explicit Groq resume passed readiness and `tc-076`, then stopped
+on HTTP 429 at `tc-077`. Coverage is now **76/98 completed**, with **22 unfinished**.
+The new conservative reset deadline is November 8, 2026, **23:30:02 IST** (rounded
+up); previous results and report checksums verified unchanged.
+
+On November 9, Groq readiness passed and batch 009 completed with 3 passes and
+2 quality failures. Batch 010 stopped at `tc-082` on HTTP 429. Current coverage is
+**81/98 completed; 17 unfinished**. The longest saved reset points to November 9,
+**11:59:51 AM IST**. Missing recognized web citations led to `insufficient_context`
+in both new failures; originals are preserved for the requested joint analysis.
+A subsequently discovered batch-boundary delay gap was fixed offline, with all
+9 batch-runner tests passing; it is not claimed as the proven cause of the 429.
+
+The subsequent Gemini continuation completed **98/98 cases: 83 passed, 15 failed,
+zero errors/skips**. The [joint citation/insufficient-context investigation](answer-quality-investigation.md)
+freezes that baseline, separates citation formatting from expected-document
+coverage, and implements validated per-claim source IDs. All 158 offline tests
+passed. A separate same-model four-case check improved from 1/4 to 2/4 without
+regressions: `tc-073` now passes, while `tc-054`/`tc-072` remain coverage failures.
+The historical full score and original expectations were not changed.

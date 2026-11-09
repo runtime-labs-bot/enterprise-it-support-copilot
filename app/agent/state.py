@@ -9,6 +9,7 @@ class AgentState(TypedDict, total=False):
 
     retrieved_chunks: list[dict]
     grading_result: dict
+    generation_diagnostics: dict
     answer: str
     sources: list[dict]
     status: str

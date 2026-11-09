@@ -108,3 +108,7 @@ requires a new ticket. Self-service closure remains available after review.
 Ticket creation supports [durable idempotency keys](docs/ticket-idempotency.md)
 across API/MCP retries. The [evaluation guide](docs/evaluations.md) covers resumable
 live batches and the offline GitHub Actions workflow.
+
+Use the [provider switch command](docs/llm-providers.md) to select Groq, OpenAI, Gemini,
+local Ollama or an explicitly configured compatible endpoint without editing
+LangGraph nodes. Add `--docker` to apply the selection to the running Docker app.

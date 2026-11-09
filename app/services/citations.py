@@ -14,9 +14,24 @@ def citation_numbers(answer):
     return references
 
 
-def validate_generated_answer(answer, source_count, finish_reason):
+def citation_validation(answer, source_count, finish_reason):
+    """Explain rejection without exposing the model's answer or changing the gate."""
     references = citation_numbers(answer or '')
-    return bool(answer and answer.strip() and references and references <= set(range(1, source_count + 1)) and finish_reason == 'stop')
+    reasons = []
+    if not answer or not answer.strip():
+        reasons.append('empty_answer')
+    if not references:
+        reasons.append('missing_citation_labels')
+    if references - set(range(1, source_count + 1)):
+        reasons.append('unknown_source_ids')
+    if finish_reason != 'stop':
+        reasons.append('incomplete_generation')
+    return {'accepted': not reasons, 'rejection_reasons': reasons,
+            'referenced_source_ids': sorted(references), 'supplied_source_count': source_count}
+
+
+def validate_generated_answer(answer, source_count, finish_reason):
+    return citation_validation(answer, source_count, finish_reason)['accepted']
 
 
 def unsourced_answer():

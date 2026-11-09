@@ -14,7 +14,7 @@ if __name__ == "__main__":
         top_k=5
     )
 
-    print("\nGenerating answer using Groq...")
+    print("\nGenerating answer using the selected provider...")
 
     result = generate_answer(
         question,
