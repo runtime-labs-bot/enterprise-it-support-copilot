@@ -34,6 +34,7 @@ jobs:
       - run: python -m unittest discover -s tests -p test_cited_output.py -q
       - run: python -m unittest discover -s tests -p test_credential_contract.py -q
       - run: python -m unittest discover -s tests -p test_coverage_expectations.py -q
+      - run: python -m unittest discover -s tests -p test_routing_investigation.py -q
       - run: python -m unittest discover -s tests -p test_tc032_trace.py -q
       - run: python -m unittest discover -s tests -p test_llm_provider.py -q
       - run: python -m unittest discover -s tests -p test_stage_diagnostics.py -q
