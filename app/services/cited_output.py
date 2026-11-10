@@ -5,6 +5,8 @@ import re
 
 def output_instructions(source_count):
     return (
+        '\nNever request, reveal, or repeat secret credentials. Explain recovery or '
+        'security policy without asking the user to paste passwords, API keys, or codes. '
         '\nOUTPUT CONTRACT:\nReturn only a JSON object with a claims array. '
         'Each claim must have exactly text (a nonempty string) and source_ids '
         '(a nonempty array of integer IDs from the supplied sources). '

@@ -1,5 +1,10 @@
 # Completed 98-case baseline and citation investigation
 
+The [credential and policy follow-up](credential-policy-followup.md) records the
+subsequent GitHub/CI/Docker verification, a pre-tool credential-response boundary
+and explicit v2 expectation reviews for `tc-054`/`tc-072`. The report below is the
+preserved v1 investigation; its historical 83/98 score has not been relabelled.
+
 All **98 knowledge cases have completed outcomes: 83 passed, 15 failed**, with
 zero errors or skips. The strict quality gate therefore fails. These are
 historical completion results across Groq/Gemini and multiple source revisions,
@@ -97,5 +102,6 @@ The full historical score remains **83/98 passed, 15 failures**. No new passes
 were substituted into it. The remaining work is semantic review of the two
 coverage cases, routing mismatches and credential-request response contract,
 followed by separately preserved, unchanged-expectation checks for older failures.
-The fix is local; the running Docker deployment has not been rebuilt or GitHub
-updated during this work. No evaluations remain running or scheduled.
+That initial investigation ended with a local fix; subsequent push, CI,
+deployment and contract-review evidence is recorded in the follow-up above.
+No evaluations remain running or scheduled.

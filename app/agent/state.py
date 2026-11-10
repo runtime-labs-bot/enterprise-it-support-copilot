@@ -5,6 +5,7 @@ from langchain_core.messages import AnyMessage
 
 class AgentState(TypedDict, total=False):
     question: str
+    credential_request_blocked: bool
     messages: Annotated[list[AnyMessage], add_messages]
 
     retrieved_chunks: list[dict]

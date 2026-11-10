@@ -1,0 +1,27 @@
+{
+  "revision": 2,
+  "previous_catalog_commit": "dbe841ab119b777acfabafed49622630d19ad2af",
+  "cases": [
+    {
+      "id": "tc-054",
+      "previous_expected_document_ids": ["KB-NET-0042", "KB-SW-0008"],
+      "previous_expectation_hash": "bd2794a0079135928f42d49a91ee6e24802d0540852fc3015452e52326b20fc9",
+      "reviewed_expected_document_ids": ["KB-NET-0042"],
+      "source": "data/knowledge_base/vpn_troubleshooting.md",
+      "section": "6. Security Rules During Troubleshooting",
+      "rationale": "This section directly prohibits free VPN services as workarounds. Software policy corroborates the same restriction but is not necessary for this answer.",
+      "required_answer": "Refuse the prohibited workaround with a valid supporting VPN-policy citation. Do not add a software citation merely to satisfy a document count."
+    },
+    {
+      "id": "tc-072",
+      "previous_expected_document_ids": ["KB-SW-0008", "KB-NET-0042"],
+      "previous_expectation_hash": "f3e1fb9980e992e5479b4749575d11111edfaffc0d08142db8bfeab88815b3d7",
+      "reviewed_expected_document_ids": ["KB-NET-0042"],
+      "source": "data/knowledge_base/vpn_troubleshooting.md",
+      "section": "6. Security Rules During Troubleshooting",
+      "rationale": "This section independently forbids internet installation of VPN clients and identifies Company Portal as the approved path.",
+      "required_answer": "State the installation restriction and name Company Portal, with a valid supporting VPN-policy citation."
+    }
+  ],
+  "historical_policy": "Original reports and expectation hashes remain unchanged. The new hashes are incompatible with v1 baseline comparisons; validation requires explicitly labelled v2 reports. Lexical policy checks do not prove semantic entailment."
+}

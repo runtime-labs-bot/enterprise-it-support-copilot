@@ -2,6 +2,7 @@ from langgraph.graph import StateGraph, START, END
 from app.services.stage_diagnostics import stage
 
 from app.agent.state import AgentState
+from app.agent.credential_contract import REFUSAL, requires_credential_refusal, safe_history_content
 from app.agent.fallback import insufficient_context_response
 from app.agent.meridian import MeridianContext, meridian_node, route_after_meridian
 from app.agent.retrieval_grader import grade_retrieval
@@ -27,6 +28,21 @@ def save_response(state: AgentState) -> dict:
         })]
     }
 
+
+def credential_boundary(state: AgentState) -> dict:
+    blocked = requires_credential_refusal(state['question'], state.get('credential_request_blocked', False))
+    if not blocked:
+        return {'credential_request_blocked':False}
+    return {'credential_request_blocked':True, 'answer':REFUSAL,
+            'status':'insufficient_context', 'sources':[], 'retrieved_chunks':[],
+            'web_results':[], 'grading_result':{}, 'web_grading_result':{},
+            'generation_diagnostics':{}, 'classification':{},
+            'meridian_handled':False, 'meridian_tools':[], 'admin_proposal':None}
+
+
+def route_after_credential_boundary(state):
+    return 'save_response' if state.get('credential_request_blocked') else 'meridian'
+
 def get_contextual_question(state: AgentState) -> str:
     messages = state.get("messages", [])
 
@@ -43,7 +59,7 @@ def get_contextual_question(state: AgentState) -> str:
 
     for message in recent_messages:
         role = "User" if message.type == "human" else "Assistant"
-        conversation.append(f"{role}: {message.content}")
+        conversation.append(f"{role}: {safe_history_content(message)}")
 
     context = "\n".join(conversation)
 
@@ -230,6 +246,7 @@ def handle_out_of_scope(state: AgentState) -> dict:
 
 workflow = StateGraph(AgentState, context_schema=MeridianContext)
 
+workflow.add_node('credential_boundary', credential_boundary)
 workflow.add_node("meridian", meridian_node)
 workflow.add_node("retrieve",retrieve_documents)
 workflow.add_node("grade",grade_documents)
@@ -242,7 +259,9 @@ workflow.add_node("fallback",handle_insufficient_context)
 workflow.add_node("out_of_scope", handle_out_of_scope)
 
 #workflow sequence
-workflow.add_edge(START, "meridian")
+workflow.add_edge(START, 'credential_boundary')
+workflow.add_conditional_edges('credential_boundary', route_after_credential_boundary,
+                              {'save_response':'save_response','meridian':'meridian'})
 workflow.add_conditional_edges(
     "meridian", route_after_meridian,
     {"save_response": "save_response", "retrieve": "retrieve"},

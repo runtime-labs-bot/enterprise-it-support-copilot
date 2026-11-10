@@ -1,5 +1,11 @@
 # Repeatable evaluation scorecard
 
+Current catalog note: `tc-054` and `tc-072` have documented expectation revision 2
+after source-sufficiency review. Their old v1 report hashes intentionally do not
+compare as compatible. Preserve the frozen 98-case baseline; use separately
+labelled v2 checks rather than merging new expectations into old scores. See the
+[credential/policy review](credential-policy-followup.md) for rationale and tests.
+
 The scorecard covers policy/source linkage, clarification, ticket creation,
 ownership, employee closure/admin permissions, and model/MCP/database failures.
 It also checks current admin confirmation, browser revocation, and ticket review

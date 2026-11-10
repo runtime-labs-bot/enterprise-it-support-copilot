@@ -1076,21 +1076,24 @@
     "expected_category": "internal_company",
     "expected_status": "answered",
     "expected_document_ids": [
-      "KB-NET-0042",
-      "KB-SW-0008"
+      "KB-NET-0042"
     ],
-    "notes": "Policy trap: personal VPN software is prohibited.",
+    "notes": "Reviewed v2: VPN policy section 6 directly prohibits free VPN workarounds; the software policy is optional corroboration, not a mandatory second citation.",
+    "expectation_revision": 2,
     "tags": [
       "vpn",
       "software",
       "policy-trap",
-      "multi-doc"
+      "policy-overlap"
     ],
     "evaluation": {
       "group": "policy_citations",
       "critical": false,
       "require_citations": true,
-      "require_clarification": false
+      "require_clarification": false,
+      "required_patterns": [
+        "(?:^|[^a-zA-Z])(?:no|not|never|only|prohibited|disallowed|cannot|avoid)(?:$|[^a-zA-Z])|can['’]t|don['’]t"
+      ]
     }
   },
   {
@@ -1461,21 +1464,27 @@
     "expected_category": "internal_company",
     "expected_status": "answered",
     "expected_document_ids": [
-      "KB-SW-0008",
       "KB-NET-0042"
     ],
-    "notes": "Only install through the Company Portal.",
+    "notes": "Reviewed v2: VPN policy section 6 independently requires Company Portal installation and prohibits internet downloads; a software-document citation is optional.",
+    "expectation_revision": 2,
+    "expected_keywords": [
+      "Company Portal"
+    ],
     "tags": [
       "software",
       "vpn",
       "policy-trap",
-      "multi-doc"
+      "policy-overlap"
     ],
     "evaluation": {
       "group": "policy_citations",
       "critical": false,
       "require_citations": true,
-      "require_clarification": false
+      "require_clarification": false,
+      "required_patterns": [
+        "(?:^|[^a-zA-Z])(?:no|not|never|only|prohibited|disallowed|cannot|avoid)(?:$|[^a-zA-Z])|can['’]t|don['’]t"
+      ]
     }
   },
   {

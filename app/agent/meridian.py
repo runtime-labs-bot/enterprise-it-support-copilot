@@ -280,7 +280,8 @@ def meridian_node(state, runtime: Runtime[MeridianContext] = None):
         return {"meridian_handled": False, "meridian_tools": []}
     messages = state.get("messages", [])
     previous = messages[:-1] if messages and messages[-1].type == "human" else messages
-    context = "\n".join(f"{message.type}: {str(message.content)[:2000]}" for message in previous[-4:])
+    from app.agent.credential_contract import safe_history_content
+    context = "\n".join(f"{message.type}: {safe_history_content(message)[:2000]}" for message in previous[-4:])
     role = runtime.context.operator_role if runtime and runtime.context else None
     if role != "admin" and employee_activation_request(state["question"], context):
         if role == "admin":
